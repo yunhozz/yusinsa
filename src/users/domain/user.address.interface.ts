@@ -3,5 +3,4 @@ export interface UserAddress {
     gu: string;
     dong: string;
     etc: string;
-    getWholeAddress(...args: string[]): string;
 }
