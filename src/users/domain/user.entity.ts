@@ -18,7 +18,7 @@ export class User extends BaseEntity {
     @Column({ unique: true, length: 50, comment: '유저 이메일' })
     email: string;
 
-    @Column({ comment: '유저 비밀번호 (salt + bcrypt 로 암호화)' })
+    @Column({ select: false, comment: '유저 비밀번호 (salt + bcrypt 로 암호화)' })
     password: string;
 
     @Column({ length: 10, comment: '유저 이름' })
