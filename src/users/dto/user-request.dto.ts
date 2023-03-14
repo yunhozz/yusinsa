@@ -1,5 +1,16 @@
-import {IsEmail, IsInt, IsPhoneNumber, IsString, IsStrongPassword, Length, Matches, MaxLength} from "class-validator";
-import {PickType} from "@nestjs/mapped-types";
+import {
+    IsEmail,
+    IsInt,
+    IsNotEmpty,
+    IsPhoneNumber,
+    IsString,
+    IsStrongPassword,
+    Length,
+    Matches,
+    MaxLength
+} from "class-validator";
+import {PartialType, PickType} from "@nestjs/mapped-types";
+import {Gender} from "../domain/gender.enum";
 
 export class CreateUserRequestDto {
     @IsEmail()
@@ -17,6 +28,9 @@ export class CreateUserRequestDto {
     @IsInt()
     age: number;
 
+    @IsNotEmpty()
+    gender: Gender;
+
     @IsString()
     si: string;
 
@@ -33,4 +47,6 @@ export class CreateUserRequestDto {
     phoneNumber: number;
 }
 
-export class UserLoginRequestDto extends PickType<CreateUserRequestDto, any>(CreateUserRequestDto, ['email', 'password']) {}
+export class UpdateProfileRequestDto extends PartialType<CreateUserRequestDto>(CreateUserRequestDto) {}
+
+export class LoginRequestDto extends PickType<CreateUserRequestDto, any>(CreateUserRequestDto, ['email', 'password']) {}

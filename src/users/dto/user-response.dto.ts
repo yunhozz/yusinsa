@@ -1,7 +1,9 @@
+import {Gender} from "../domain/gender.enum";
+
 export class UserProfileResponseDto {
-    email: string;
     name: string;
     age: number;
+    gender: Gender;
 }
 
 export class JwtTokenResponseDto {
