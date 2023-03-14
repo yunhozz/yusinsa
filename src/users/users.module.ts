@@ -4,10 +4,10 @@ import {UsersService} from './users.service';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {User} from "./domain/user.entity";
 import {TypeOrmCustomModule} from "../config/type-orm-custom.module";
-import {UserRepository} from "./infrastructure/user.repository";
-import {PassportModule, PassportStrategy} from "@nestjs/passport";
+import {UserRepository} from "./user.repository";
+import {PassportModule} from "@nestjs/passport";
 import {JwtModule} from "@nestjs/jwt";
-import {JwtStrategy} from "./common/jwt/jwt.strategy";
+import {JwtStrategy} from "./jwt.strategy";
 
 import * as config from 'config';
 
@@ -25,6 +25,6 @@ const jwtConfig = config.get('jwt');
     ],
     controllers: [UsersController],
     providers: [UsersService, JwtStrategy],
-    exports: [JwtStrategy, PassportStrategy]
+    exports: [JwtStrategy, PassportModule]
 })
 export class UsersModule {}
