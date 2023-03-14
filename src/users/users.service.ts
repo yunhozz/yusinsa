@@ -70,7 +70,12 @@ export class UsersService {
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
-        return this.findUserById(id);
+        const user = await this.findUserById(id);
+        return {
+            name: user.name,
+            age: user.age,
+            gender: user.gender
+        };
     }
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
@@ -82,8 +87,13 @@ export class UsersService {
         user.gender = gender;
         user.address = { si, gu, dong, etc };
         user.phoneNumber = phoneNumber;
+        await this.userRepository.save(user);
 
-        return await this.userRepository.save(user);
+        return {
+            name: user.name,
+            age: user.age,
+            gender: user.gender
+        };
     }
 
     async deleteUserById(id: bigint): Promise<void> {
