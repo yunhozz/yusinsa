@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import {Address} from "./address.interface";
 import {Role} from "./role.enum";
+import {Gender} from "./gender.enum";
 
 @Entity()
 export class User extends BaseEntity {
@@ -26,6 +27,9 @@ export class User extends BaseEntity {
 
     @Column({ comment: '유저 나이' })
     age: number;
+
+    @Column({ comment: '유저 성별' })
+    gender: Gender;
 
     @Column({ type: 'json', comment: '유저 주소 (시, 구, 동, etc)' })
     address: Address;
