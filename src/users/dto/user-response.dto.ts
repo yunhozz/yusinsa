@@ -3,3 +3,8 @@ export class UserProfileResponseDto {
     name: string;
     age: number;
 }
+
+export class JwtTokenResponseDto {
+    accessToken: string;
+    expiredDate: Date;
+}
