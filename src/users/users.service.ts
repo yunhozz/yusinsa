@@ -1,12 +1,10 @@
 import {BadRequestException, Injectable} from '@nestjs/common';
 import {UserRepository} from "./infrastructure/user.repository";
-import {CreateUserRequestDto} from "./dto/request/create-user.request";
 import {User} from "./domain/user.entity";
-import {UserLoginRequestDto} from "./dto/request/user-login.request";
 import {InjectRepository} from "@nestjs/typeorm";
 import {JwtService} from "@nestjs/jwt";
-import {JwtTokenResponseDto} from "./dto/response/jwt-token.response";
-import {UserProfileResponseDto} from "./dto/response/user-profile.response";
+import {CreateUserRequestDto, UserLoginRequestDto} from "./dto/user-request.dto";
+import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user-response.dto";
 
 import * as config from 'config';
 

@@ -7,7 +7,7 @@ import {TypeOrmCustomModule} from "../config/type-orm-custom.module";
 import {UserRepository} from "./infrastructure/user.repository";
 import {PassportModule, PassportStrategy} from "@nestjs/passport";
 import {JwtModule} from "@nestjs/jwt";
-import {JwtStrategy} from "./jwt/jwt.strategy";
+import {JwtStrategy} from "./common/jwt/jwt.strategy";
 
 import * as config from 'config';
 

@@ -1,11 +1,10 @@
 import {Repository} from "typeorm";
 import {User} from "../domain/user.entity";
 import {CustomRepository} from "../../config/custom-repository.decorator";
-import {CreateUserRequestDto} from "../dto/request/create-user.request";
-import {UserRole} from "../domain/user.role.enum";
-import {UserProfileResponseDto} from "../dto/response/user-profile.response";
+import {Role} from "../domain/role.enum";
 import {NotFoundException, UnauthorizedException} from "@nestjs/common";
-import {UserLoginRequestDto} from "../dto/request/user-login.request";
+import {CreateUserRequestDto, UserLoginRequestDto} from "../dto/user-request.dto";
+import {UserProfileResponseDto} from "../dto/user-response.dto";
 
 import * as bcrypt from 'bcrypt';
 
@@ -22,20 +21,20 @@ export class UserRepository extends Repository<User> {
             age,
             address: { si, gu, dong, etc },
             phoneNumber,
-            role: UserRole.USER
+            roles: [Role.USER]
         });
 
         return await this.save(user);
     }
 
-    async validateLogin(dto: UserLoginRequestDto): Promise<{ email: string, role: UserRole }> {
+    async validateLogin(dto: UserLoginRequestDto): Promise<{ email: string, roles: Role[] }> {
         const { email, password } = dto;
-        const user = await this.findOneBy({ email, password });
+        const user = await this.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
             return {
                 email: user.email,
-                role: user.role
+                roles: user.roles
             };
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
