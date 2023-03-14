@@ -1,4 +1,4 @@
-export interface UserAddress {
+export interface Address {
     si: string;
     gu: string;
     dong: string;

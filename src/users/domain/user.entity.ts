@@ -7,8 +7,8 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
-import {UserRole} from "./user.role.enum";
-import {UserAddress} from "./user.address.interface";
+import {Address} from "./address.interface";
+import {Role} from "./role.enum";
 
 @Entity()
 export class User extends BaseEntity {
@@ -28,13 +28,13 @@ export class User extends BaseEntity {
     age: number;
 
     @Column({ type: 'json', comment: '유저 주소 (시, 구, 동, etc)' })
-    address: UserAddress;
+    address: Address;
 
     @Column({ comment: '유저 핸드폰 번호' })
     phoneNumber: number;
 
     @Column({ comment: '유저 권한 (ADMIN, USER)' })
-    role: UserRole;
+    roles: Role[];
 
     @CreateDateColumn({ comment: '생성 일자' })
     createdAt: Date;
