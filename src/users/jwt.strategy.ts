@@ -9,6 +9,11 @@ import * as config from 'config';
 
 const jwtConfig = config.get('jwt');
 
+export interface JwtPayload {
+    email: string;
+    roles: Role[];
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(
@@ -29,9 +34,4 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
         return user;
     }
-}
-
-export interface JwtPayload {
-    email: string;
-    roles: Role[];
 }

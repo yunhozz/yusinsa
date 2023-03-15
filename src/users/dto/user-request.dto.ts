@@ -1,6 +1,6 @@
 import {IsEmail, IsInt, IsNotEmpty, IsNumberString, IsString, Length, Matches, MaxLength} from "class-validator";
 import {PartialType, PickType} from "@nestjs/mapped-types";
-import {Gender} from "../domain/gender.enum";
+import {Gender} from "../user.entity";
 
 export class CreateUserRequestDto {
     @IsEmail()

@@ -1,4 +1,4 @@
-import {Gender} from "../domain/gender.enum";
+import {Gender} from "../user.entity";
 
 export class UserProfileResponseDto {
     name: string;

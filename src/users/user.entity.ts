@@ -8,6 +8,23 @@ import {
     UpdateDateColumn
 } from "typeorm";
 
+export interface Address {
+    si: string;
+    gu: string;
+    dong: string;
+    etc: string;
+}
+
+export enum Gender {
+    MALE = 'male',
+    FEMALE = 'female'
+}
+
+export enum Role {
+    ADMIN = 'admin',
+    USER = 'user'
+}
+
 @Entity()
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -25,7 +42,7 @@ export class User extends BaseEntity {
     @Column({ comment: '유저 나이' })
     age: number;
 
-    @Column({ comment: '유저 성별' })
+    @Column({ type: 'enum', enum: Gender, comment: '유저 성별' })
     gender: Gender;
 
     @Column({ type: 'json', comment: '유저 주소 (시, 구, 동, etc)' })
@@ -34,7 +51,7 @@ export class User extends BaseEntity {
     @Column({ comment: '유저 핸드폰 번호' })
     phoneNumber: number;
 
-    @Column({ type: 'enum', array: true, comment: '유저 권한 (ADMIN, USER)' })
+    @Column({ type: 'enum', enum: Role, array: true, comment: '유저 권한 (ADMIN, USER)' })
     roles: Role[];
 
     @CreateDateColumn({ comment: '생성 일자' })
@@ -44,22 +61,5 @@ export class User extends BaseEntity {
     updatedAt: Date;
 
     @DeleteDateColumn({ nullable: true, comment: '삭제 일자' })
-    deletedAt?: Date | null;
-}
-
-export interface Address {
-    si: string;
-    gu: string;
-    dong: string;
-    etc: string;
-}
-
-export enum Gender {
-    MALE = 'male',
-    FEMALE = 'female'
-}
-
-export enum Role {
-    ADMIN = 'admin',
-    USER = 'user'
+    deletedAt!: Date | null;
 }
