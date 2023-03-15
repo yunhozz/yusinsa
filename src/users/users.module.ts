@@ -3,7 +3,7 @@ import {UsersController} from './users.controller';
 import {UsersService} from './users.service';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {User} from "./user.entity";
-import {TypeOrmCustomModule} from "../config/type-orm-custom.module";
+import {TypeOrmCustomModule} from "../config/type-orm.custom.module";
 import {UserRepository} from "./user.repository";
 import {PassportModule} from "@nestjs/passport";
 import {JwtModule} from "@nestjs/jwt";

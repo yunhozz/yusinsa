@@ -3,8 +3,8 @@ import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {JwtService} from "@nestjs/jwt";
-import {CreateUserRequestDto, LoginRequestDto, UpdateProfileRequestDto} from "./dto/user-request.dto";
-import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user-response.dto";
+import {CreateUserRequestDto, LoginRequestDto, UpdateProfileRequestDto} from "./dto/user.request.dto";
+import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
