@@ -1,4 +1,11 @@
-import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import {
+    BadRequestException,
+    CACHE_MANAGER,
+    Inject,
+    Injectable,
+    NotFoundException,
+    UnauthorizedException
+} from '@nestjs/common';
 import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
@@ -10,6 +17,7 @@ import {
     UpdateProfileRequestDto
 } from "./dto/user.request.dto";
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
+import {MultiCache} from "cache-manager";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -21,7 +29,9 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: UserRepository,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        @Inject(CACHE_MANAGER)
+        private readonly cacheManager: MultiCache
     ) {}
 
     async join(dto: CreateUserRequestDto): Promise<User> {
@@ -57,7 +67,8 @@ export class UsersService {
             let date = new Date();
             date.setSeconds(date + jwtConfig.expiresIn);
 
-            return { accessToken, expiredDate: date };
+            await this.cacheManager.set(email, accessToken, jwtConfig.expiresIn);
+            return new JwtTokenResponseDto(accessToken, date);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
