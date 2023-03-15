@@ -1,6 +1,7 @@
 import {TypeOrmModuleOptions} from "@nestjs/typeorm";
+import {User} from "../users/user.entity";
+
 import * as config from 'config';
-import {User} from "../users/domain/user.entity";
 
 const dbConfig = config.get('db');
 

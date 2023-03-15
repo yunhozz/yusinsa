@@ -2,8 +2,7 @@ import {PassportStrategy} from "@nestjs/passport";
 import {Injectable, UnauthorizedException} from "@nestjs/common";
 import {ExtractJwt, Strategy} from "passport-jwt";
 import {InjectRepository} from "@nestjs/typeorm";
-import {Role} from "./domain/role.enum";
-import {User} from "./domain/user.entity";
+import {Role, User} from "./user.entity";
 import {UserRepository} from "./user.repository";
 
 import * as config from 'config';

@@ -1,7 +1,6 @@
 import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {UserRepository} from "./user.repository";
-import {User} from "./domain/user.entity";
-import {Role} from "./domain/role.enum";
+import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {JwtService} from "@nestjs/jwt";
 import {CreateUserRequestDto, LoginRequestDto, UpdateProfileRequestDto} from "./dto/user-request.dto";
@@ -67,6 +66,10 @@ export class UsersService {
         }
 
         return user;
+    }
+
+    async findAllUsers(): Promise<User[]> {
+        return await this.userRepository.find();
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
