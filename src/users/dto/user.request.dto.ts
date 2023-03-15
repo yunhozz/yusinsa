@@ -37,6 +37,19 @@ export class CreateUserRequestDto {
     phoneNumber: number;
 }
 
-export class UpdateProfileRequestDto extends PartialType<CreateUserRequestDto>(CreateUserRequestDto) {}
+export class UpdatePasswordRequestDto {
+    @IsString()
+    oldPassword: string;
 
-export class LoginRequestDto extends PickType<CreateUserRequestDto, any>(CreateUserRequestDto, ['email', 'password']) {}
+    @IsString()
+    @Length(6, 12, { message: '6 ~ 12글자 사이로 입력해주세요.' })
+    @Matches(/^[a-zA-Z0-9]*$/, { message: '패스워드는 영어와 숫자로만 구성할 수 있습니다.' })
+    newPassword: string;
+
+    @IsString()
+    checkPassword: string;
+}
+
+export class UpdateProfileRequestDto extends PartialType(CreateUserRequestDto) {}
+
+export class LoginRequestDto extends PickType(CreateUserRequestDto, ['email', 'password']) {}

@@ -3,7 +3,12 @@ import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
 import {JwtService} from "@nestjs/jwt";
-import {CreateUserRequestDto, LoginRequestDto, UpdateProfileRequestDto} from "./dto/user.request.dto";
+import {
+    CreateUserRequestDto,
+    LoginRequestDto,
+    UpdatePasswordRequestDto,
+    UpdateProfileRequestDto
+} from "./dto/user.request.dto";
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
 
 import * as config from 'config';
@@ -59,48 +64,55 @@ export class UsersService {
         }
     }
 
-    async findUserById(id: bigint): Promise<User> {
-        const user = await this.userRepository.findOneBy({ id });
-        if (!user) {
-            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
-        }
-
-        return user;
-    }
-
     async findAllUsers(): Promise<User[]> {
         return await this.userRepository.find();
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
         const user = await this.findUserById(id);
-        return {
-            name: user.name,
-            age: user.age,
-            gender: user.gender
-        };
+        return new UserProfileResponseDto(user);
+    }
+
+    async updatePassword(id: bigint, dto: UpdatePasswordRequestDto): Promise<void> {
+        // 기존 비밀번호 입력 -> 새 비밀번호 입력 -> 비밀번호 확인
+        const { oldPassword, newPassword, checkPassword } = dto;
+        const user = await this.findUserById(id);
+
+        if (!await bcrypt.compare(oldPassword, user.password)) {
+            throw new BadRequestException(`기존 비밀번호와 다릅니다.`);
+        }
+
+        if (newPassword !== checkPassword) {
+            throw new BadRequestException(`업데이트할 비밀번호와 일치하지 않습니다.`)
+        }
+
+        const salt = await bcrypt.genSalt();
+        const password = await bcrypt.hash(newPassword, salt);
+
+        user.updatePassword(password);
+        await this.userRepository.save(user);
     }
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
         const { name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
         const user = await this.findUserById(id);
 
-        user.name = name;
-        user.age = age;
-        user.gender = gender;
-        user.address = { si, gu, dong, etc };
-        user.phoneNumber = phoneNumber;
+        user.updateProfile(name, age, gender, { si, gu, dong, etc }, phoneNumber);
         await this.userRepository.save(user);
-
-        return {
-            name: user.name,
-            age: user.age,
-            gender: user.gender
-        };
+        return new UserProfileResponseDto(user);
     }
 
     async deleteUserById(id: bigint): Promise<void> {
         const user = await this.findUserById(id);
         await this.userRepository.softDelete({ id: user.id });
+    }
+
+    private async findUserById(id: bigint): Promise<User> {
+        const user = await this.userRepository.findOneBy({ id });
+        if (!user) {
+            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
+        }
+
+        return user;
     }
 }
