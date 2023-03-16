@@ -14,10 +14,12 @@ export class UserProfileResponseDto {
 
 export class JwtTokenResponseDto {
     accessToken: string;
-    expiredDate: Date;
+    refreshToken: string;
+    accessTokenExpiredDate: Date;
 
-    constructor(accessToken: string, expiredDate: Date) {
+    constructor(accessToken: string, refreshToken: string, accessTokenExpiredDate: Date) {
         this.accessToken = accessToken;
-        this.expiredDate = expiredDate;
+        this.refreshToken = refreshToken;
+        this.accessTokenExpiredDate = accessTokenExpiredDate;
     }
 }

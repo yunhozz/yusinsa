@@ -17,7 +17,7 @@ import {
     UpdateProfileRequestDto
 } from "./dto/user.request.dto";
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
-import {MultiCache} from "cache-manager";
+import {Cache} from "cache-manager";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -31,7 +31,7 @@ export class UsersService {
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
         @Inject(CACHE_MANAGER)
-        private readonly cacheManager: MultiCache
+        private readonly cacheManager: Cache
     ) {}
 
     async join(dto: CreateUserRequestDto): Promise<User> {
@@ -63,12 +63,13 @@ export class UsersService {
         const user = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            const accessToken = this.jwtService.sign(user);
-            let date = new Date();
-            date.setSeconds(date + jwtConfig.expiresIn);
+            const accessToken = this.generateAccessToken(user);
+            const refreshToken = this.generateRefreshToken(email);
+            await this.cacheManager.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
 
-            await this.cacheManager.set(email, accessToken, jwtConfig.expiresIn);
-            return new JwtTokenResponseDto(accessToken, date);
+            let date = new Date();
+            date.setSeconds(date + jwtConfig.refreshToken.expiresIn);
+            return new JwtTokenResponseDto(accessToken, refreshToken, date);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
@@ -125,5 +126,19 @@ export class UsersService {
         }
 
         return user;
+    }
+
+    private generateAccessToken(user: User): string {
+        return this.jwtService.sign(user, {
+            secret: jwtConfig.secret,
+            expiresIn: jwtConfig.accessToken.expiresIn
+        });
+    }
+
+    private generateRefreshToken(email: string): string {
+        return this.jwtService.sign(email, {
+            secret: jwtConfig.secret,
+            expiresIn: jwtConfig.refreshToken.expiresIn
+        })
     }
 }
