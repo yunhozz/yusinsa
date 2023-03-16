@@ -5,6 +5,3 @@ db:
   type: 'postgres'
   port: 5432
   database: 'yusinsa'
-
-jwt:
-  expiresIn: 3600
