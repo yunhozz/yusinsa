@@ -7,7 +7,8 @@ import {TypeOrmCustomModule} from "../config/type-orm.custom.module";
 import {UserRepository} from "./user.repository";
 import {PassportModule} from "@nestjs/passport";
 import {JwtModule} from "@nestjs/jwt";
-import {JwtStrategy} from "./jwt.strategy";
+import {JwtStrategy} from "../common/guard/jwt.strategy";
+import {JwtRefreshStrategy} from "../common/guard/jwt-refresh.strategy";
 
 import * as config from 'config';
 
@@ -24,7 +25,7 @@ const jwtConfig = config.get('jwt');
         PassportModule.register({ defaultStrategy: 'jwt' })
     ],
     controllers: [UsersController],
-    providers: [UsersService, JwtStrategy],
-    exports: [JwtStrategy, PassportModule]
+    providers: [UsersService, JwtStrategy, JwtRefreshStrategy],
+    exports: [JwtStrategy, JwtRefreshStrategy, PassportModule]
 })
 export class UsersModule {}
