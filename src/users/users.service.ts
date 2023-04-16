@@ -77,6 +77,15 @@ export class UsersService {
         }
     }
 
+    async findUserById(id: bigint): Promise<User> {
+        const user = await this.userRepository.findOneBy({ id });
+        if (!user) {
+            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
+        }
+
+        return user;
+    }
+
     async findAllUsers(): Promise<User[]> {
         return await this.userRepository.find();
     }
@@ -118,15 +127,6 @@ export class UsersService {
     async deleteUserById(id: bigint): Promise<void> {
         const user = await this.findUserById(id);
         await this.userRepository.softDelete({ id: user.id });
-    }
-
-    private async findUserById(id: bigint): Promise<User> {
-        const user = await this.userRepository.findOneBy({ id });
-        if (!user) {
-            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
-        }
-
-        return user;
     }
 
     private generateAccessToken(id: bigint): string {
