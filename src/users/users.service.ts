@@ -18,6 +18,7 @@ import {
 } from "./dto/user.request.dto";
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
 import {Cache} from "cache-manager";
+import {TokenPayload} from "./dto/token.payload";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -63,8 +64,8 @@ export class UsersService {
         const user = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            const accessToken = this.generateAccessToken(user);
-            const refreshToken = this.generateRefreshToken(email);
+            const accessToken = this.generateAccessToken(user.id);
+            const refreshToken = this.generateRefreshToken(user.email);
             await this.cacheManager.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
 
             let date = new Date();
@@ -128,8 +129,9 @@ export class UsersService {
         return user;
     }
 
-    private generateAccessToken(user: User): string {
-        return this.jwtService.sign(user, {
+    private generateAccessToken(id: bigint): string {
+        const payload: TokenPayload = { id };
+        return this.jwtService.sign(payload, {
             secret: jwtConfig.secret,
             expiresIn: jwtConfig.accessToken.expiresIn
         });
