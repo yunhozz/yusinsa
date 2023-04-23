@@ -4,6 +4,7 @@ import {ExtractJwt, Strategy} from "passport-jwt";
 import {TokenPayload} from "../../users/dto/token.payload";
 import {UsersService} from "../../users/users.service";
 import {User} from "../../users/user.entity";
+import {Request} from "express";
 
 import * as config from 'config';
 
@@ -16,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     ) {
         super({
             secretOrKey: process.env.JWT_SECRET || jwtConfig.secret,
-            jwtFromRequest: ExtractJwt.fromExtractors([req => req.cookies.accessToken])
+            jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => req?.cookies?.Authentication])
         });
     }
 
