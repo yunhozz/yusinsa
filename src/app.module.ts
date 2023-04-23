@@ -11,6 +11,7 @@ import * as redisStore from 'cache-manager-ioredis';
     imports: [
         TypeOrmModule.forRoot(typeOrmConfig),
         CacheModule.register({
+            isGlobal: true,
             store: redisStore,
             host: 'localhost',
             port: 6379,
