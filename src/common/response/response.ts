@@ -9,7 +9,7 @@ export class Response {
     status: HttpStatus;
     result: Result;
 
-    constructor(success: boolean, status: HttpStatus, result: Result) {
+    private constructor(success: boolean, status: HttpStatus, result: Result) {
         this.success = success;
         this.status = status;
         this.result = result;
