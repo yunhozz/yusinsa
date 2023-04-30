@@ -1,3 +1,3 @@
 export interface TokenPayload {
-    id: bigint
+    id: bigint;
 }
