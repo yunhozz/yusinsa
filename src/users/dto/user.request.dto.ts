@@ -13,6 +13,7 @@ import {PartialType, PickType} from "@nestjs/mapped-types";
 import {Gender} from "../user.entity";
 
 export class CreateUserRequestDto {
+
     @IsEmail()
     @MaxLength(30, { message: '글자 수 30 이하로 입력해주세요.' })
     email: string;
@@ -49,6 +50,7 @@ export class CreateUserRequestDto {
 }
 
 export class UpdatePasswordRequestDto {
+
     @IsString()
     oldPassword: string;
 

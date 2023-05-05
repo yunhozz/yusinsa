@@ -1,6 +1,7 @@
 import {Gender, User} from "../user.entity";
 
 export class UserProfileResponseDto {
+
     name: string;
     age: number;
     gender: Gender;
@@ -13,6 +14,7 @@ export class UserProfileResponseDto {
 }
 
 export class JwtTokenResponseDto {
+
     accessToken: string;
     refreshToken: string;
     accessTokenExpiredDate: Date;
