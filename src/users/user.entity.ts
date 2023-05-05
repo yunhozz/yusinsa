@@ -51,7 +51,7 @@ export class User extends BaseEntity {
     @Column({ comment: '유저 핸드폰 번호' })
     phoneNumber: number;
 
-    @Column({ type: 'enum', enum: Role, array: true, comment: '유저 권한 (ADMIN, USER)' })
+    @Column({ type: 'enum', enum: Role, comment: '유저 권한 (ADMIN, USER)' })
     roles: Role[];
 
     @CreateDateColumn({ comment: '생성 일자' })
