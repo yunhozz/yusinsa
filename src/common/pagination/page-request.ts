@@ -1,12 +1,12 @@
-import {IsOptional, IsString} from "class-validator";
+import {IsNumber, IsOptional} from "class-validator";
 
 export class PageRequest {
 
-    @IsString()
+    @IsNumber()
     @IsOptional() // undefined 도 받을 수 있다.
     pageNo?: number | 1;
 
-    @IsString()
+    @IsNumber()
     @IsOptional()
     pageSize?: number | 10;
 
