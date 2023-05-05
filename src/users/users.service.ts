@@ -37,7 +37,7 @@ export class UsersService {
 
     async join(dto: CreateUserRequestDto): Promise<User> {
         const { email, password, name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
-        const found = await this.userRepository.findOneBy({ email });
+        const found: User = await this.userRepository.findOneBy({ email });
 
         if (found) {
             throw new BadRequestException(`중복되는 이메일이 존재합니다. 현재 입력: ${dto.email}`);
@@ -61,14 +61,14 @@ export class UsersService {
 
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
-        const user = await this.userRepository.findOneBy({ email });
+        const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
             const accessToken = this.generateAccessToken(user.id);
             const refreshToken = this.generateRefreshToken(user.email);
             await this.cacheManager.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
 
-            let date = new Date();
+            let date: Date = new Date();
             date.setSeconds(date + jwtConfig.refreshToken.expiresIn);
             return new JwtTokenResponseDto(accessToken, refreshToken, date);
 
@@ -78,7 +78,7 @@ export class UsersService {
     }
 
     async findUserById(id: bigint): Promise<User> {
-        const user = await this.userRepository.findOneBy({ id });
+        const user: User = await this.userRepository.findOneBy({ id });
         if (!user) {
             throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
         }
@@ -91,14 +91,14 @@ export class UsersService {
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
-        const user = await this.findUserById(id);
+        const user: User = await this.findUserById(id);
         return new UserProfileResponseDto(user);
     }
 
     async updatePassword(id: bigint, dto: UpdatePasswordRequestDto): Promise<void> {
         // 기존 비밀번호 입력 -> 새 비밀번호 입력 -> 비밀번호 확인
         const { oldPassword, newPassword, checkPassword } = dto;
-        const user = await this.findUserById(id);
+        const user: User = await this.findUserById(id);
 
         if (!await bcrypt.compare(oldPassword, user.password)) {
             throw new BadRequestException(`기존 비밀번호와 다릅니다.`);
@@ -117,7 +117,7 @@ export class UsersService {
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
         const { name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
-        const user = await this.findUserById(id);
+        const user: User = await this.findUserById(id);
 
         user.updateProfile(name, age, gender, { si, gu, dong, etc }, phoneNumber);
         await this.userRepository.save(user);
@@ -125,7 +125,7 @@ export class UsersService {
     }
 
     async deleteUserById(id: bigint): Promise<void> {
-        const user = await this.findUserById(id);
+        const user: User = await this.findUserById(id);
         await this.userRepository.softDelete({ id: user.id });
     }
 
@@ -141,6 +141,6 @@ export class UsersService {
         return this.jwtService.sign(email, {
             secret: jwtConfig.secret,
             expiresIn: jwtConfig.refreshToken.expiresIn
-        })
+        });
     }
 }
