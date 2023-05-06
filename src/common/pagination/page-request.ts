@@ -19,7 +19,7 @@ export class PageRequest {
             this.pageSize = 10;
         }
 
-        return (Number(this.pageNo - 1)) * Number(this.pageSize);
+        return (Number(this.pageNo) - 1) * Number(this.pageSize);
     }
 
     getLimit(): number {
