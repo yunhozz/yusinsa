@@ -46,12 +46,8 @@ export class UsersController {
     async join(@Body(ValidationPipe) dto: CreateUserRequestDto): Promise<Response> {
         const user: User = await this.userService.join(dto);
         return Response.ok(HttpStatus.CREATED, '회원가입에 성공하였습니다.', {
-            email: user.email,
-            name: user.name,
-            age: user.age,
-            gender: user.gender,
-            address: user.address,
-            phoneNumber: user.phoneNumber
+            id: user.id,
+            email: user.email
         });
     }
 
