@@ -86,8 +86,14 @@ export class UsersService {
         return user;
     }
 
-    async findAllUsers(): Promise<User[]> {
-        return await this.userRepository.find();
+    async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
+        const users: User[] = await this.userRepository.find({
+            skip: page.getOffset(),
+            take: page.getLimit()
+        });
+        const totalCount = await this.userRepository.count();
+        const pageSize = page.pageSize;
+        return new Page(pageSize, totalCount, users);
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
