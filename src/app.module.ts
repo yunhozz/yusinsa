@@ -1,18 +1,16 @@
-import {CacheModule, Module} from '@nestjs/common';
+import {Module} from '@nestjs/common';
 import {UsersModule} from './users/users.module';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {typeOrmConfig} from "./config/type-orm.config";
 import {APP_GUARD} from "@nestjs/core";
 import {RolesGuard} from "./common/guard/roles.guard";
-
-import * as redisStore from 'cache-manager-ioredis';
+import {CacheModule} from "@nestjs/cache-manager";
 
 @Module({
     imports: [
         TypeOrmModule.forRoot(typeOrmConfig),
         CacheModule.register({
             isGlobal: true,
-            store: redisStore,
             host: 'localhost',
             port: 6379,
             ttl: 0
