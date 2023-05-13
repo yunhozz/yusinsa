@@ -7,6 +7,7 @@ import {
     ParseIntPipe,
     Patch,
     Post,
+    Query,
     UseGuards,
     ValidationPipe
 } from '@nestjs/common';
@@ -23,15 +24,18 @@ import {User} from "./user.entity";
 import {GetUser} from "../common/decorator/get-user.decorator";
 import {Response} from "../common/response/response";
 import {Request, response} from "express";
+import {Page} from "../common/pagination/page";
+import {PageRequest} from "../common/pagination/page-request";
 
-@Controller('api/users')
+@Controller('/api/users')
 export class UsersController {
     constructor(private readonly userService: UsersService) {}
 
-    @Get()
-    @UseGuards(AuthGuard())
-    async getAllUsers(): Promise<Response> {
-        const users = await this.userService.findAllUsers();
+    @Get('/q')
+    // @UseGuards(AuthGuard())
+    async getAllUsersPage(@Query('pageNo', ParseIntPipe) pageNo, @Query('pageSize', ParseIntPipe) pageSize): Promise<Response> {
+        const page: PageRequest = new PageRequest(pageNo, pageSize);
+        const users: Page<User> = await this.userService.findAllUsersPage(page);
         return Response.ok(HttpStatus.OK, '유저 리스트 조회에 성공하였습니다.', users);
     }
 

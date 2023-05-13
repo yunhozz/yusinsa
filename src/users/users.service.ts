@@ -19,6 +19,8 @@ import {
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
 import {Cache} from "cache-manager";
 import {TokenPayload} from "./dto/token.payload";
+import {Page} from "../common/pagination/page";
+import {PageRequest} from "../common/pagination/page-request";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
