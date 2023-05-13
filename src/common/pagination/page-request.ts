@@ -10,6 +10,11 @@ export class PageRequest {
     @IsOptional()
     pageSize?: number | 10;
 
+    constructor(pageNo: number | 1, pageSize: number | 10) {
+        this.pageNo = pageNo;
+        this.pageSize = pageSize;
+    }
+
     getOffset(): number {
         if (this.pageNo < 1 || this.pageNo === null || this.pageNo === undefined) {
             this.pageNo = 1;
