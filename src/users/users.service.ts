@@ -1,11 +1,4 @@
-import {
-    BadRequestException,
-    CACHE_MANAGER,
-    Inject,
-    Injectable,
-    NotFoundException,
-    UnauthorizedException
-} from '@nestjs/common';
+import {BadRequestException, Inject, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
@@ -21,6 +14,7 @@ import {Cache} from "cache-manager";
 import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
+import {CACHE_MANAGER} from "@nestjs/cache-manager";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -70,8 +64,7 @@ export class UsersService {
             const refreshToken = this.generateRefreshToken(user.email);
             await this.cacheManager.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
 
-            let date: Date = new Date();
-            date.setSeconds(date + jwtConfig.refreshToken.expiresIn);
+            const date = new Date(Date.now() + jwtConfig.refreshToken.expiresIn);
             return new JwtTokenResponseDto(accessToken, refreshToken, date);
 
         } else {

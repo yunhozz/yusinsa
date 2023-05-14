@@ -8,7 +8,8 @@ import {
     Patch,
     Post,
     Query,
-    UseGuards,
+    Req,
+    Res,
     ValidationPipe
 } from '@nestjs/common';
 import {UsersService} from "./users.service";
@@ -56,10 +57,9 @@ export class UsersController {
     }
 
     @Post('/login')
-    async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res() res: Response): Promise<ApiResponse> {
+    async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
         const jwtTokenResponseDto: JwtTokenResponseDto = await this.userService.login(dto);
-        console.log(jwtTokenResponseDto.accessTokenExpiredDate);
-        res.setHeader('Authentication', 'Bearer' + jwtTokenResponseDto.accessToken);
+        res.setHeader('Authentication', 'Bearer ' + jwtTokenResponseDto.accessToken);
         res.cookie('token', jwtTokenResponseDto.accessToken, {
             httpOnly: true,
             expires: jwtTokenResponseDto.accessTokenExpiredDate
