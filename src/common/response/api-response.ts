@@ -3,7 +3,7 @@ import {HttpStatus} from "@nestjs/common";
 import {Success} from "./success";
 import {Failure} from "./failure";
 
-export class Response {
+export class ApiResponse {
 
     success: boolean;
     status: HttpStatus;
@@ -15,11 +15,11 @@ export class Response {
         this.result = result;
     }
 
-    static ok<T>(status: HttpStatus, message: string, data?: T): Response {
-        return new Response(true, status, new Success<T>(message, data));
+    static ok<T>(status: HttpStatus, message: string, data?: T): ApiResponse {
+        return new ApiResponse(true, status, new Success<T>(message, data));
     }
 
-    static fail(status: HttpStatus, errMsg: string): Response {
-        return new Response(false, status, new Failure(Date.now(), errMsg));
+    static fail(status: HttpStatus, errMsg: string): ApiResponse {
+        return new ApiResponse(false, status, new Failure(Date.now(), errMsg));
     }
 }
