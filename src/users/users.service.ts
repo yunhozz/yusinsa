@@ -66,7 +66,7 @@ export class UsersService {
         const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            const accessToken = this.generateAccessToken(user.id);
+            const accessToken = this.generateAccessToken(user.email);
             const refreshToken = this.generateRefreshToken(user.email);
             await this.cacheManager.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
 
@@ -137,8 +137,8 @@ export class UsersService {
         await this.userRepository.softDelete({ id: user.id });
     }
 
-    private generateAccessToken(id: bigint): string {
-        const payload: TokenPayload = { id };
+    private generateAccessToken(email: string): string {
+        const payload: TokenPayload = { email };
         return this.jwtService.sign(payload, {
             secret: jwtConfig.secret,
             expiresIn: jwtConfig.accessToken.expiresIn
@@ -146,7 +146,8 @@ export class UsersService {
     }
 
     private generateRefreshToken(email: string): string {
-        return this.jwtService.sign(email, {
+        const payload: TokenPayload = { email };
+        return this.jwtService.sign(payload, {
             secret: jwtConfig.secret,
             expiresIn: jwtConfig.refreshToken.expiresIn
         });
