@@ -1,4 +1,4 @@
-import {BadRequestException, Inject, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
@@ -10,11 +10,9 @@ import {
     UpdateProfileRequestDto
 } from "./dto/user.request.dto";
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
-import {Cache} from "cache-manager";
 import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
-import {CACHE_MANAGER} from "@nestjs/cache-manager";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -55,17 +53,19 @@ export class UsersService {
         return await this.userRepository.save(user);
     }
 
+    // TODO: JWT refresh token Redis 에 저장
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
         const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            const accessToken = this.generateAccessToken(user.email);
-            const refreshToken = this.generateRefreshToken(user.email);
-            await this.cacheManager.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
+            const jwtTokens = this.generateJwtToken(email);
 
+            // const redis = await this.redisService.getClient('test');
+            // await redis.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
             const date = new Date(Date.now() + jwtConfig.refreshToken.expiresIn);
-            return new JwtTokenResponseDto(accessToken, refreshToken, date);
+
+            return new JwtTokenResponseDto(jwtTokens.accessToken, jwtTokens.refreshToken, date);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
@@ -130,19 +130,20 @@ export class UsersService {
         await this.userRepository.softDelete({ id: user.id });
     }
 
-    private generateAccessToken(email: string): string {
+    private generateJwtToken(email: string): any {
         const payload: TokenPayload = { email };
-        return this.jwtService.sign(payload, {
-            secret: jwtConfig.secret,
+        const secret = jwtConfig.secret;
+
+        const accessToken = this.jwtService.sign(payload, {
+            secret: secret,
             expiresIn: jwtConfig.accessToken.expiresIn
         });
-    }
 
-    private generateRefreshToken(email: string): string {
-        const payload: TokenPayload = { email };
-        return this.jwtService.sign(payload, {
-            secret: jwtConfig.secret,
+        const refreshToken = this.jwtService.sign(payload, {
+            secret: secret,
             expiresIn: jwtConfig.refreshToken.expiresIn
         });
+
+        return { accessToken, refreshToken };
     }
 }
