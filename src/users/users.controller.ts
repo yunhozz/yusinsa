@@ -10,10 +10,10 @@ import {
     Query,
     Req,
     Res,
+    UseGuards,
     ValidationPipe
 } from '@nestjs/common';
 import {UsersService} from "./users.service";
-import {AuthGuard} from "@nestjs/passport";
 import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
 import {
     CreateUserRequestDto,
@@ -27,13 +27,14 @@ import {ApiResponse} from "../common/response/api-response";
 import {Request, Response} from "express";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
+import {AuthGuard} from "@nestjs/passport";
 
 @Controller('/api/users')
 export class UsersController {
     constructor(private readonly userService: UsersService) {}
 
     @Get('/q')
-    // @UseGuards(AuthGuard())
+    @UseGuards(AuthGuard())
     async getAllUsersPage(@Query('pageNo', ParseIntPipe) pageNo, @Query('pageSize', ParseIntPipe) pageSize): Promise<ApiResponse> {
         const page: PageRequest = new PageRequest(pageNo, pageSize);
         const users: Page<User> = await this.userService.findAllUsersPage(page);
@@ -41,7 +42,7 @@ export class UsersController {
     }
 
     @Get('/:id')
-    // @UseGuards(AuthGuard())
+    @UseGuards(AuthGuard())
     async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
         const userProfileResponseDto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
         return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', userProfileResponseDto);
