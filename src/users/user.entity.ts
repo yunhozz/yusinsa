@@ -74,4 +74,9 @@ export class User extends BaseEntity {
         this.address = address;
         this.phoneNumber = phoneNumber;
     }
+
+    getAddress(): string {
+        const address = this.address;
+        return `${address.si} ${address.gu} ${address.dong}`;
+    }
 }

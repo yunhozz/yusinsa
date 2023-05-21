@@ -5,11 +5,15 @@ export class UserProfileResponseDto {
     name: string;
     age: number;
     gender: Gender;
+    address: string;
+    phoneNumber: number;
 
     constructor(user: User) {
         this.name = user.name;
         this.age = user.age;
         this.gender = user.gender;
+        this.address = user.getAddress();
+        this.phoneNumber = user.phoneNumber;
     }
 }
 
