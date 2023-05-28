@@ -30,3 +30,11 @@ const jwtConfig = config.get('jwt');
     exports: [JwtStrategy, JwtRefreshStrategy, PassportModule]
 })
 export class UsersModule {}
+
+/**
+ * <Module 속성>
+ * 1. imports : 해당 모듈에서 필요한 모듈의 집합. 여기에 들어가는 모듈은 프로바이더를 노출하는 모듈임.
+ * 2. controllers : 이 모듈 안에서 정의된, 인스턴스화 되어야 하는 컨트롤러의 집합.
+ * 3. providers : Nest 인젝터(Injector)가 인스턴스화 시키고, 적어도 이 모듈 안에서 공유하는 프로바이더.
+ * 4. exports : 해당 모듈에서 제공하는 프로바이더의 부분 집합. 이 모듈을 가져오는 다른 모듈에서 사용할 수 있도록 노출할 프로바이더
+ */
