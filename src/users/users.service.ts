@@ -65,7 +65,7 @@ export class UsersService {
             const expiresIn = jwtConfig.refreshToken.expiresIn;
 
             const redis: Redis = this.redisService.getClient();
-            await redis.set(email, refreshToken);
+            await redis.set(email, refreshToken, 'EX', expiresIn);
             const date: Date = new Date(Date.now() + expiresIn);
             return new JwtTokenResponseDto(accessToken, refreshToken, date);
 
