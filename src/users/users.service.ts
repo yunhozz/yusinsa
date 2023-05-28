@@ -13,8 +13,7 @@ import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.d
 import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
-import {RedisService} from "@liaoliaots/nestjs-redis";
-import {Redis} from "ioredis";
+import {RedisCustomService} from "./redis-custom.service";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -27,7 +26,7 @@ export class UsersService {
         @InjectRepository(User)
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisCustomService
     ) {}
 
     async join(dto: CreateUserRequestDto): Promise<User> {
@@ -64,8 +63,7 @@ export class UsersService {
             const refreshToken = jwtTokens.refreshToken;
             const expiresIn = jwtConfig.refreshToken.expiresIn;
 
-            const redis: Redis = this.redisService.getClient();
-            await redis.set(email, refreshToken, 'EX', expiresIn);
+            await this.redisService.set(email, refreshToken, expiresIn);
             const date: Date = new Date(Date.now() + expiresIn);
             return new JwtTokenResponseDto(accessToken, refreshToken, date);
 
