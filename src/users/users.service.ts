@@ -13,6 +13,8 @@ import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.d
 import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
+import {RedisService} from "@liaoliaots/nestjs-redis";
+import {Redis} from "ioredis";
 
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
@@ -25,8 +27,7 @@ export class UsersService {
         @InjectRepository(User)
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
-        @Inject(CACHE_MANAGER)
-        private readonly cacheManager: Cache
+        private readonly redisService: RedisService
     ) {}
 
     async join(dto: CreateUserRequestDto): Promise<User> {
@@ -53,19 +54,20 @@ export class UsersService {
         return await this.userRepository.save(user);
     }
 
-    // TODO: JWT refresh token Redis 에 저장
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
         const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
             const jwtTokens = this.generateJwtToken(email);
+            const accessToken = jwtTokens.accessToken;
+            const refreshToken = jwtTokens.refreshToken;
+            const expiresIn = jwtConfig.refreshToken.expiresIn;
 
-            // const redis = await this.redisService.getClient('test');
-            // await redis.set(email, refreshToken, jwtConfig.refreshToken.expiresIn);
-            const date = new Date(Date.now() + jwtConfig.refreshToken.expiresIn);
-
-            return new JwtTokenResponseDto(jwtTokens.accessToken, jwtTokens.refreshToken, date);
+            const redis: Redis = this.redisService.getClient();
+            await redis.set(email, refreshToken);
+            const date: Date = new Date(Date.now() + expiresIn);
+            return new JwtTokenResponseDto(accessToken, refreshToken, date);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
