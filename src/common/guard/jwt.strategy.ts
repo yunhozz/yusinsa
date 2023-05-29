@@ -1,10 +1,12 @@
 import {PassportStrategy} from "@nestjs/passport";
-import {Injectable, Logger} from "@nestjs/common";
-import {UserRepository} from "../../users/user.repository";
+import {HttpException, Injectable} from "@nestjs/common";
 import {ExtractJwt, Strategy} from "passport-jwt";
 import {TokenPayload} from "../../users/dto/token.payload";
-import {User} from "../../users/user.entity";
 import {Request} from "express";
+import {UserRepository} from "../../users/user.repository";
+import {JwtService} from "@nestjs/jwt";
+import {RedisCustomService} from "../../users/redis-custom.service";
+import {UsersService} from "../../users/users.service";
 
 import * as config from 'config';
 
@@ -12,23 +14,53 @@ const jwtConfig = config.get('jwt');
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-
-    private readonly logger: Logger = new Logger(JwtStrategy.name);
-
-    constructor(private readonly userRepository: UserRepository) {
+    constructor(
+        private readonly userRepository: UserRepository,
+        private readonly userService: UsersService,
+        private readonly jwtService: JwtService,
+        private readonly redisService: RedisCustomService
+    ) {
         super({
             secretOrKey: process.env.JWT_SECRET || jwtConfig.secret,
-            jwtFromRequest: ExtractJwt.fromExtractors([(req: Request) => {
-                const token = req?.cookies?.token;
-                this.logger.log(`Access Token: ${token}`);
-                return token;
-            }])
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: true
         });
     }
 
-    async validate(payload: TokenPayload): Promise<User> {
-        const email = payload.email;
-        this.logger.log(`Validated User: ${email}`);
-        return await this.userRepository.findOneBy({ email });
+    // 로그인 시 jwt token 에 유저 이메일을 담은 TokenPayload 저장
+    async validate(req: Request, payload: TokenPayload): Promise<TokenPayload> {
+        console.log(req);
+        const now: Date = new Date();
+        const tokenExp: Date = new Date(req['exp'] * 1000);
+        const between = Math.floor((tokenExp.getTime() - now.getTime()) / 1000 / 60); // 남은 시간(분)
+
+        // 만료된 경우 or 3분 미만으로 남은 경우
+        if (between < 3) {
+            const email = req['email'];
+            const user = await this.userRepository.findOneBy({ email });
+            const refreshToken = await this.redisService.get(user.email);
+
+            try {
+                this.jwtService.verify(refreshToken, { secret: jwtConfig.secret });
+                const jwtTokens = this.userService.generateJwtToken(user.email);
+                await this.redisService.set(email, jwtTokens.refreshToken, jwtConfig.refreshToken.expiresIn);
+
+                return payload;
+
+            } catch (e) {
+                switch (e.message) {
+                    case 'INVALID_TOKEN':
+                    case 'TOKEN_IS_ARRAY':
+                    case 'NO_USER':
+                        throw new HttpException('유효하지 않은 토큰입니다.', 401);
+
+                    case 'EXPIRED_TOKEN':
+                        throw new HttpException('토큰이 만료되었습니다.', 410);
+
+                    default:
+                        throw new HttpException('서버 오류입니다.', 500);
+                }
+            }
+        }
     }
 }
