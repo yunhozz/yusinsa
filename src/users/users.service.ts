@@ -59,13 +59,12 @@ export class UsersService {
 
         if (user && await bcrypt.compare(password, user.password)) {
             const jwtTokens = this.generateJwtToken(email);
-            const accessToken = jwtTokens.accessToken;
-            const refreshToken = jwtTokens.refreshToken;
-            const expiresIn = jwtConfig.refreshToken.expiresIn;
+            const accessTokenExpiry = jwtConfig.accessToken.expiresIn;
+            const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn;
 
-            await this.redisService.set(email, refreshToken, expiresIn);
-            const date: Date = new Date(Date.now() + expiresIn);
-            return new JwtTokenResponseDto(accessToken, refreshToken, date);
+            await this.redisService.set(email, jwtTokens.refreshToken, refreshTokenExpiry);
+            const date: Date = new Date(Date.now() + new Date(accessTokenExpiry).getTime());
+            return new JwtTokenResponseDto(jwtTokens.accessToken, jwtTokens.refreshToken, date);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
@@ -130,7 +129,7 @@ export class UsersService {
         await this.userRepository.softDelete({ id: user.id });
     }
 
-    private generateJwtToken(email: string): any {
+    generateJwtToken(email: string): any {
         const payload: TokenPayload = { email };
         const secret = jwtConfig.secret;
 
