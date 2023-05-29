@@ -19,12 +19,12 @@ export class TypeOrmCustomModule {
                     return new repository(baseRepository.target, baseRepository.manager, baseRepository.queryRunner);
                 }
             });
-
-            return {
-                providers,
-                module: TypeOrmCustomModule,
-                exports: providers
-            };
         }
+
+        return {
+            providers,
+            module: TypeOrmCustomModule,
+            exports: providers
+        };
     }
 }
