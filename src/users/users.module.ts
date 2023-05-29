@@ -21,7 +21,7 @@ const jwtConfig = config.get('jwt');
         TypeOrmCustomModule.forCustomRepository([UserRepository]),
         JwtModule.register({
             secret: process.env.JWT_SECRET || jwtConfig.secret,
-            signOptions: { expiresIn: jwtConfig.expiresIn },
+            signOptions: { expiresIn: jwtConfig.accessToken.expiresIn }
         }),
         PassportModule.register({ defaultStrategy: 'jwt' })
     ],
