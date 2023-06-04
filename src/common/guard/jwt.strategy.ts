@@ -1,3 +1,4 @@
+import * as config from 'config';
 import {PassportStrategy} from "@nestjs/passport";
 import {HttpException, Injectable} from "@nestjs/common";
 import {ExtractJwt, Strategy} from "passport-jwt";
@@ -7,8 +8,6 @@ import {UserRepository} from "../../users/user.repository";
 import {JwtService} from "@nestjs/jwt";
 import {RedisCustomService} from "../../users/redis-custom.service";
 import {UsersService} from "../../users/users.service";
-
-import * as config from 'config';
 
 const jwtConfig = config.get('jwt');
 

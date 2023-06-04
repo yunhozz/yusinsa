@@ -1,3 +1,5 @@
+import * as config from 'config';
+import * as bcrypt from "bcrypt";
 import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
 import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
@@ -14,9 +16,6 @@ import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {RedisCustomService} from "./redis-custom.service";
-
-import * as config from 'config';
-import * as bcrypt from "bcrypt";
 
 const jwtConfig = config.get('jwt');
 

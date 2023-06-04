@@ -1,3 +1,4 @@
+import * as config from 'config';
 import {Module} from '@nestjs/common';
 import {UsersController} from './users.controller';
 import {UsersService} from './users.service';
@@ -9,8 +10,6 @@ import {PassportModule} from "@nestjs/passport";
 import {JwtModule} from "@nestjs/jwt";
 import {JwtStrategy} from "../common/guard/jwt.strategy";
 import {RedisCustomService} from "./redis-custom.service";
-
-import * as config from 'config';
 
 const jwtConfig = config.get('jwt');
 
