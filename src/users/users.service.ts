@@ -62,7 +62,7 @@ export class UsersService {
             const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn;
 
             await this.redisService.set(email, jwtTokens.refreshToken, refreshTokenExpiry);
-            const date: Date = new Date(Date.now() + new Date(accessTokenExpiry).getTime());
+            const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry)));
             return new JwtTokenResponseDto(jwtTokens.accessToken, jwtTokens.refreshToken, date);
 
         } else {
