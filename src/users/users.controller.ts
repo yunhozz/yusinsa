@@ -35,7 +35,7 @@ export class UsersController {
 
     @Get('/q')
     @UseGuards(AuthGuard())
-    async getAllUsersPage(@Query('pageNo', ParseIntPipe) pageNo, @Query('pageSize', ParseIntPipe) pageSize): Promise<ApiResponse> {
+    async getAllUsersPage(@Query('pageNo') pageNo?: number, @Query('pageSize') pageSize?: number): Promise<ApiResponse> {
         const page: PageRequest = new PageRequest(pageNo, pageSize);
         const users: Page<User> = await this.userService.findAllUsersPage(page);
         return ApiResponse.ok(HttpStatus.OK, '유저 리스트 조회에 성공하였습니다.', users);
