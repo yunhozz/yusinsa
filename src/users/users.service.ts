@@ -1,6 +1,13 @@
 import * as config from 'config';
 import * as bcrypt from "bcrypt";
-import {BadRequestException, Injectable, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import {
+    BadRequestException,
+    ForbiddenException,
+    HttpException,
+    Injectable,
+    NotFoundException,
+    UnauthorizedException
+} from '@nestjs/common';
 import {UserRepository} from "./user.repository";
 import {Role, User} from "./user.entity";
 import {InjectRepository} from "@nestjs/typeorm";
@@ -57,17 +64,46 @@ export class UsersService {
         const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            const jwtTokens = this.generateJwtToken(email);
-            const accessTokenExpiry = jwtConfig.accessToken.expiresIn;
-            const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn;
-
-            await this.redisService.set(email, jwtTokens.refreshToken, refreshTokenExpiry);
-            const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry)));
-            return new JwtTokenResponseDto(jwtTokens.accessToken, jwtTokens.refreshToken, date);
+            return await this.generateJwtTokensByEmail(user.email);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
         }
+    }
+
+    // 유저의 api 요청마다 쿠키에 있는 token 값으로 call
+    async tokenReissue(token: string): Promise<JwtTokenResponseDto> {
+        const decode = this.jwtService.decode(token);
+        const now: Date = new Date();
+        const expire: Date = new Date(decode['exp'] * 1000);
+        const min = Math.floor((expire.getTime() - now.getTime()) / (1000 * 60));
+        console.log(`남은시간 = ${min}분`);
+
+        // 남은 유효시간이 3분 미만으로 남은 경우
+        if (min < 3) {
+            try {
+                const email = decode['email'];
+                return await this.generateJwtTokensByEmail(email);
+            } catch (e) {
+                switch (e.message) {
+                    case 'INVALID_TOKEN' || 'TOKEN_IS_ARRAY' || 'NO_USER':
+                        throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+
+                    case 'EXPIRED_TOKEN':
+                        throw new ForbiddenException('토큰이 만료되었습니다.');
+
+                    default:
+                        throw new HttpException('서버 오류입니다.', 500);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    async logout(token: string): Promise<void> {
+        const user: User = this.jwtService.verify(token);
+        await this.redisService.delete(user.email);
     }
 
     async findUserById(id: bigint): Promise<User> {
@@ -128,7 +164,7 @@ export class UsersService {
         await this.userRepository.softDelete({ id: user.id });
     }
 
-    generateJwtToken(email: string): any {
+    private generateJwtToken(email: string): { atk: string, rtk: string } {
         const payload: TokenPayload = { email };
         const secret = jwtConfig.secret;
 
@@ -142,6 +178,19 @@ export class UsersService {
             expiresIn: jwtConfig.refreshToken.expiresIn
         });
 
-        return { accessToken, refreshToken };
+        return {
+            atk : accessToken,
+            rtk : refreshToken
+        };
+    }
+
+    private async generateJwtTokensByEmail(email: string): Promise<JwtTokenResponseDto> {
+        const jwtTokens = this.generateJwtToken(email);
+        const accessTokenExpiry = jwtConfig.accessToken.expiresIn; // 3600 sec (1h)
+        const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)
+
+        await this.redisService.set(email, jwtTokens.rtk, refreshTokenExpiry);
+        const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry * 1000)));
+        return new JwtTokenResponseDto(jwtTokens.atk, jwtTokens.rtk, date);
     }
 }
