@@ -46,9 +46,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
             } catch (e) {
                 switch (e.message) {
-                    case 'INVALID_TOKEN':
-                    case 'TOKEN_IS_ARRAY':
-                    case 'NO_USER':
+                    case 'INVALID_TOKEN' || 'TOKEN_IS_ARRAY' || 'NO_USER':
                         throw new HttpException('유효하지 않은 토큰입니다.', 401);
 
                     case 'EXPIRED_TOKEN':
