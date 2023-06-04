@@ -47,13 +47,13 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(password, salt);
         const user: User = await this.userRepository.create({
             email,
-            password: hashedPassword,
+            password : hashedPassword,
             name,
             age,
             gender,
-            address: { si, gu, dong, etc },
+            address : { si, gu, dong, etc },
             phoneNumber,
-            roles: [Role.USER]
+            roles : [Role.USER]
         });
 
         return await this.userRepository.save(user);
@@ -97,8 +97,6 @@ export class UsersService {
                 }
             }
         }
-
-        return null;
     }
 
     async logout(token: string): Promise<void> {
@@ -117,8 +115,8 @@ export class UsersService {
 
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
         const users: User[] = await this.userRepository.find({
-            skip: page.getOffset(),
-            take: page.getLimit()
+            skip : page.getOffset(),
+            take : page.getLimit()
         });
         const totalCount = await this.userRepository.count();
         const pageSize = page.pageSize;
@@ -169,13 +167,13 @@ export class UsersService {
         const secret = jwtConfig.secret;
 
         const accessToken = this.jwtService.sign(payload, {
-            secret: secret,
-            expiresIn: jwtConfig.accessToken.expiresIn
+            secret : secret,
+            expiresIn : jwtConfig.accessToken.expiresIn
         });
 
         const refreshToken = this.jwtService.sign(payload, {
-            secret: secret,
-            expiresIn: jwtConfig.refreshToken.expiresIn
+            secret : secret,
+            expiresIn : jwtConfig.refreshToken.expiresIn
         });
 
         return {
