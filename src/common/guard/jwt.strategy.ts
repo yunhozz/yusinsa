@@ -26,12 +26,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         });
     }
 
-    // 로그인 시 jwt token 에 유저 이메일을 담은 TokenPayload 저장
+    // 로그인 시 jwtFromRequest 옵션에 의해 Request 에 jwt payload 전달
+    // 유효한 토큰일 시 유저 이메일을 담은 TokenPayload 반환
     async validate(req: Request, payload: TokenPayload): Promise<TokenPayload> {
-        console.log(req);
         const now: Date = new Date();
         const tokenExp: Date = new Date(req['exp'] * 1000);
-        const between = Math.floor((tokenExp.getTime() - now.getTime()) / 1000 / 60); // 남은 시간(분)
+        const between = Math.floor((tokenExp.getTime() - now.getTime()) / (1000 * 60)); // 남은 시간(분)
 
         // 만료된 경우 or 3분 미만으로 남은 경우
         if (between < 3) {
@@ -43,8 +43,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
                 this.jwtService.verify(refreshToken, { secret: jwtConfig.secret });
                 const jwtTokens = this.userService.generateJwtToken(user.email);
                 await this.redisService.set(email, jwtTokens.refreshToken, jwtConfig.refreshToken.expiresIn);
-
-                return payload;
 
             } catch (e) {
                 switch (e.message) {
@@ -61,5 +59,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
                 }
             }
         }
+
+        return payload;
     }
 }
