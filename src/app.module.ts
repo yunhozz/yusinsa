@@ -3,7 +3,7 @@ import {UsersModule} from './users/users.module';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {typeOrmConfig} from "./config/type-orm.config";
 import {APP_GUARD} from "@nestjs/core";
-import {RolesGuard} from "./common/guard/roles.guard";
+import {RolesGuard} from "./common/decorator/roles.guard";
 import {RedisModule} from "@liaoliaots/nestjs-redis";
 
 @Module({

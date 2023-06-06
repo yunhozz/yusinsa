@@ -8,7 +8,7 @@ import {TypeOrmCustomModule} from "../config/type-orm.custom.module";
 import {UserRepository} from "./user.repository";
 import {PassportModule} from "@nestjs/passport";
 import {JwtModule} from "@nestjs/jwt";
-import {JwtStrategy} from "../common/guard/jwt.strategy";
+import {JwtStrategy} from "../common/strategy/jwt.strategy";
 import {RedisCustomService} from "./redis-custom.service";
 
 const jwtConfig = config.get('jwt');
