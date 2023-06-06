@@ -33,6 +33,33 @@ import {AuthGuard} from "@nestjs/passport";
 export class UsersController {
     constructor(private readonly userService: UsersService) {}
 
+    /**
+     * 내 정보 조회
+     * @param id: bigint
+     */
+    @Get('/me')
+    @UseGuards(AuthGuard())
+    async getMyInfo(@GetUser() id: bigint): Promise<ApiResponse> {
+        const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
+        return ApiResponse.ok(HttpStatus.OK, '내 정보 조회에 성공하였습니다.', dto);
+    }
+
+    /**
+     * 특정 유저 정보 조회
+     * @param id: bigint
+     */
+    @Get('/:id')
+    @UseGuards(AuthGuard())
+    async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
+        const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
+        return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', dto);
+    }
+
+    /**
+     * 유저 페이징 리스트 조회
+     * @param pageNo: number
+     * @param pageSize: number
+     */
     @Get('/q')
     @UseGuards(AuthGuard())
     async getAllUsersPage(@Query('pageNo') pageNo?: number, @Query('pageSize') pageSize?: number): Promise<ApiResponse> {
@@ -48,58 +75,94 @@ export class UsersController {
         return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', userProfileResponseDto);
     }
 
+    /**
+     * 회원가입
+     * @param dto: CreateUserRequestDto
+     */
     @Post('/join')
     async join(@Body(ValidationPipe) dto: CreateUserRequestDto): Promise<ApiResponse> {
         const user: User = await this.userService.join(dto);
         return ApiResponse.ok(HttpStatus.CREATED, '회원가입에 성공하였습니다.', {
-            id: user.id,
-            email: user.email
+            id : user.id,
+            email : user.email
         });
     }
 
+    /**
+     * 유저 로그인 (ID, PW)
+     * @param dto: LoginRequestDto
+     * @param res: Response
+     */
     @Post('/login')
-    async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
+    async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         const jwtTokenResponseDto: JwtTokenResponseDto = await this.userService.login(dto);
-        res.setHeader('Authentication', 'Bearer ' + jwtTokenResponseDto.accessToken);
+        // Send JWT access token to front-end with cookie
         res.cookie('token', jwtTokenResponseDto.accessToken, {
-            httpOnly: true,
-            expires: jwtTokenResponseDto.accessTokenExpiredDate
+            path : '/',
+            httpOnly : true,
+            secure : true,
+            maxAge : 180000 // 3 min
         });
+        console.log(`Bearer ${jwtTokenResponseDto.accessToken}`);
 
         return ApiResponse.ok(HttpStatus.CREATED, '로그인에 성공하였습니다.');
     }
 
-    // TODO: jwt 토큰 재발행, 로그아웃 api
-    @Post('/reissue')
-    async tokenReissue(req: Request): Promise<ApiResponse> {
-        return ApiResponse.ok(HttpStatus.CREATED, 'JWT 토큰이 재발행 되었습니다.');
-    }
-
+    /**
+     * 로그아웃
+     * @param id: bigint
+     * @param req: Request
+     * @param res: Response
+     */
     @Post('/logout')
-    async logout(): Promise<ApiResponse> {
-        return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');
+    @UseGuards(AuthGuard())
+    async logout(@GetUser() id: bigint, @Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
+        try {
+            const token = req?.cookies?.token;
+            if (token) {
+                res.clearCookie('token', { path : '/' })
+            }
+
+            await this.userService.logout(id);
+            return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');
+
+        } catch (e) {
+            return ApiResponse.fail(e.status, e.message);
+        }
     }
 
+    /**
+     * 유저 비밀번호 변경
+     * @param id: bigint
+     * @param dto: UpdatePasswordRequestDto
+     */
     @Patch('/password')
-    async updatePassword(
-        @GetUser('id', ParseIntPipe) id: bigint,
-        @Body(ValidationPipe) dto: UpdatePasswordRequestDto
-    ): Promise<ApiResponse> {
+    @UseGuards(AuthGuard())
+    async updatePassword(@GetUser() id: bigint, @Body(ValidationPipe) dto: UpdatePasswordRequestDto): Promise<ApiResponse> {
         await this.userService.updatePassword(id, dto);
         return ApiResponse.ok(HttpStatus.CREATED, '패스워드 업데이트를 성공적으로 완료했습니다.');
     }
 
+    /**
+     * 유저 프로필 정보 변경
+     * @param id: bigint
+     * @param dto: UpdateProfileRequestDto
+     */
     @Patch('/profile')
-    async updateProfile(
-        @GetUser('id', ParseIntPipe) id: bigint,
-        @Body(ValidationPipe) dto: UpdateProfileRequestDto
-    ): Promise<ApiResponse> {
+    @UseGuards(AuthGuard())
+    async updateProfile(@GetUser() id: bigint, @Body(ValidationPipe) dto: UpdateProfileRequestDto): Promise<ApiResponse> {
         await this.userService.updateProfileById(id, dto);
         return ApiResponse.ok(HttpStatus.CREATED, '프로필 업데이트를 성공적으로 완료했습니다.');
     }
 
+    /**
+     * 회원 탈퇴
+     * @param id: bigint
+     * @param res: Response
+     */
     @Patch('/delete')
-    async withdraw(@GetUser('id', ParseIntPipe) id: bigint, @Res() res: Response): Promise<ApiResponse> {
+    @UseGuards(AuthGuard())
+    async withdraw(@GetUser() id: bigint, @Res() res: Response): Promise<ApiResponse> {
         await this.userService.deleteUserById(id);
         res.removeHeader('Authentication');
         res.clearCookie('jwt');
