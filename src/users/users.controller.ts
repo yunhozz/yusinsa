@@ -45,17 +45,6 @@ export class UsersController {
     }
 
     /**
-     * 특정 유저 정보 조회
-     * @param id: bigint
-     */
-    @Get('/:id')
-    @UseGuards(AuthGuard())
-    async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
-        const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
-        return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', dto);
-    }
-
-    /**
      * 유저 페이징 리스트 조회
      * @param pageNo: number
      * @param pageSize: number
@@ -68,11 +57,44 @@ export class UsersController {
         return ApiResponse.ok(HttpStatus.OK, '유저 리스트 조회에 성공하였습니다.', users);
     }
 
+    /**
+     * 유저가 api 를 호출할 때마다 해당 api 실행하여 jwt 토큰의 만료 시간 검증 후 필요 시 재발급
+     * @param req: Request
+     * @param res: Response
+     */
+    @Get('/reissue')
+    async tokenReissue(@Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
+        try {
+            const token = req?.headers?.authorization;
+            const result: JwtTokenResponseDto = await this.userService.tokenReissue(token.split(' ')[1]);
+
+            if (result) {
+                // Send JWT access token to front-end with cookie
+                res.cookie('token', result.accessToken, {
+                    path : '/',
+                    httpOnly : true,
+                    secure : true,
+                    maxAge : 180000 // 3 min
+                });
+                return ApiResponse.ok(HttpStatus.CREATED, 'JWT 토큰이 재발행 되었습니다.');
+            }
+
+            return ApiResponse.ok(HttpStatus.CREATED, 'JWT 토큰이 아직 유효합니다.');
+
+        } catch (e) {
+            return ApiResponse.fail(e.status, e.message);
+        }
+    }
+
+    /**
+     * 특정 유저 정보 조회
+     * @param id: bigint
+     */
     @Get('/:id')
     @UseGuards(AuthGuard())
     async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
-        const userProfileResponseDto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
-        return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', userProfileResponseDto);
+        const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
+        return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', dto);
     }
 
     /**

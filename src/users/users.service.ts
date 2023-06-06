@@ -72,7 +72,7 @@ export class UsersService {
     }
 
     // 유저의 api 요청마다 쿠키에 있는 token 값으로 call
-    async tokenReissue(token: string): Promise<JwtTokenResponseDto> {
+    async tokenReissue(token: string): Promise<JwtTokenResponseDto | null> {
         const decode = this.jwtService.decode(token);
         const now: Date = new Date();
         const expire: Date = new Date(decode['exp'] * 1000);
@@ -98,7 +98,8 @@ export class UsersService {
                         throw new HttpException('서버 오류입니다.', 500);
                 }
             }
-        }
+
+        } else return null;
     }
 
     async logout(id: bigint): Promise<void> {
