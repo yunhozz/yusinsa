@@ -64,7 +64,7 @@ export class UsersService {
         const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            return await this.generateJwtTokensByEmail(user.email);
+            return await this.generateJwtTokens(user.id, user.email);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
@@ -82,8 +82,10 @@ export class UsersService {
         // 남은 유효시간이 3분 미만으로 남은 경우
         if (min < 3) {
             try {
-                const email = decode['email'];
-                return await this.generateJwtTokensByEmail(email);
+                const sub = decode['sub'];
+                const username = decode['username'];
+                return await this.generateJwtTokens(sub, username);
+
             } catch (e) {
                 switch (e.message) {
                     case 'INVALID_TOKEN' || 'TOKEN_IS_ARRAY' || 'NO_USER':
@@ -159,11 +161,19 @@ export class UsersService {
 
     async deleteUserById(id: bigint): Promise<void> {
         const user: User = await this.findUserById(id);
-        await this.userRepository.softDelete({ id: user.id });
+        await this.userRepository.softDelete({ id : user.id });
     }
 
-    private generateJwtToken(email: string): { atk: string, rtk: string } {
-        const payload: TokenPayload = { email };
+    private async findUserById(id: bigint): Promise<User> {
+        const user: User = await this.userRepository.findOneBy({ id });
+        if (!user) {
+            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
+        }
+        return user;
+    }
+
+    private async generateJwtTokens(sub: bigint, username: string): Promise<JwtTokenResponseDto> {
+        const payload: TokenPayload = { sub, username };
         const secret = jwtConfig.secret;
 
         const accessToken = this.jwtService.sign(payload, {
@@ -176,19 +186,11 @@ export class UsersService {
             expiresIn : jwtConfig.refreshToken.expiresIn
         });
 
-        return {
-            atk : accessToken,
-            rtk : refreshToken
-        };
-    }
-
-    private async generateJwtTokensByEmail(email: string): Promise<JwtTokenResponseDto> {
-        const jwtTokens = this.generateJwtToken(email);
         const accessTokenExpiry = jwtConfig.accessToken.expiresIn; // 3600 sec (1h)
         const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)
 
-        await this.redisService.set(email, jwtTokens.rtk, refreshTokenExpiry);
+        await this.redisService.set(username, refreshToken, refreshTokenExpiry);
         const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry * 1000)));
-        return new JwtTokenResponseDto(jwtTokens.atk, jwtTokens.rtk, date);
+        return new JwtTokenResponseDto(accessToken, refreshToken, date);
     }
 }

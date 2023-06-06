@@ -1,3 +1,4 @@
 export interface TokenPayload {
-    email: string;
+    sub: bigint,
+    username: string;
 }
