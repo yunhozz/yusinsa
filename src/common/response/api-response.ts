@@ -20,6 +20,6 @@ export class ApiResponse {
     }
 
     static fail(status: HttpStatus, errMsg: string): ApiResponse {
-        return new ApiResponse(false, status, new Failure(Date.now(), errMsg));
+        return new ApiResponse(false, status, new Failure(new Date(), errMsg));
     }
 }
