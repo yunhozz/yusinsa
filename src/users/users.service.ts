@@ -101,18 +101,9 @@ export class UsersService {
         }
     }
 
-    async logout(token: string): Promise<void> {
-        const user: User = this.jwtService.verify(token);
+    async logout(id: bigint): Promise<void> {
+        const user: User = await this.findUserById(id);
         await this.redisService.delete(user.email);
-    }
-
-    async findUserById(id: bigint): Promise<User> {
-        const user: User = await this.userRepository.findOneBy({ id });
-        if (!user) {
-            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
-        }
-
-        return user;
     }
 
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
