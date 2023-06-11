@@ -7,17 +7,17 @@ import {RolesGuard} from "./common/decorator/roles.guard";
 import {RedisModule} from "@liaoliaots/nestjs-redis";
 
 @Module({
-    imports: [
+    imports : [
         TypeOrmModule.forRoot(typeOrmConfig),
         RedisModule.forRoot({
-           closeClient: true,
-           config: {
-               host: '127.0.0.1',
-               port: 6379
+           closeClient : true,
+           config : {
+               host : '127.0.0.1',
+               port : 6379
            }
         }),
         UsersModule
     ],
-    providers: [{ provide: APP_GUARD, useClass: RolesGuard }]
+    providers : [{ provide : APP_GUARD, useClass : RolesGuard }]
 })
 export class AppModule {}

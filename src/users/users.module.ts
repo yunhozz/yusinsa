@@ -14,18 +14,18 @@ import {RedisCustomService} from "./redis-custom.service";
 const jwtConfig = config.get('jwt');
 
 @Module({
-    imports: [
+    imports : [
         TypeOrmModule.forFeature([User]),
         TypeOrmCustomModule.forCustomRepository([UserRepository]),
         JwtModule.register({
-            secret: process.env.JWT_SECRET || jwtConfig.secret,
-            signOptions: { expiresIn: jwtConfig.accessToken.expiresIn }
+            secret : process.env.JWT_SECRET || jwtConfig.secret,
+            signOptions : { expiresIn : jwtConfig.accessToken.expiresIn }
         }),
-        PassportModule.register({ defaultStrategy: 'jwt' })
+        PassportModule.register({ defaultStrategy : 'jwt' })
     ],
-    controllers: [UsersController],
-    providers: [UsersService, JwtStrategy, RedisCustomService],
-    exports: [JwtStrategy, PassportModule]
+    controllers : [UsersController],
+    providers : [UsersService, JwtStrategy, RedisCustomService],
+    exports : [JwtStrategy, PassportModule]
 })
 export class UsersModule {}
 
