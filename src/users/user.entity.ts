@@ -3,10 +3,11 @@ import {
     Column,
     CreateDateColumn,
     DeleteDateColumn,
-    Entity,
+    Entity, OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
+import {Order} from "../orders/order.entity";
 
 export interface Address {
     si: string;
@@ -53,6 +54,9 @@ export class User extends BaseEntity {
 
     @Column({ type: 'enum', enum: Role, comment: '유저 권한 (ADMIN, USER)' })
     roles: Role[];
+
+    @OneToMany(() => Order, order => order.user)
+    orders: Order[];
 
     @CreateDateColumn({ comment: '생성 일자' })
     createdAt: Date;

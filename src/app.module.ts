@@ -5,6 +5,7 @@ import {typeOrmConfig} from "./config/type-orm.config";
 import {APP_GUARD} from "@nestjs/core";
 import {RolesGuard} from "./common/decorator/roles.guard";
 import {RedisModule} from "@liaoliaots/nestjs-redis";
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
     imports : [
@@ -16,7 +17,8 @@ import {RedisModule} from "@liaoliaots/nestjs-redis";
                port : 6379
            }
         }),
-        UsersModule
+        UsersModule,
+        OrdersModule
     ],
     providers : [{ provide : APP_GUARD, useClass : RolesGuard }]
 })
