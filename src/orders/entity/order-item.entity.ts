@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import {Order} from "./order.entity";
 import {Item} from "./item.entity";
+import {Address} from "../../common/element/address.interface";
 
 @Entity()
 export class OrderItem extends BaseEntity {
@@ -23,6 +24,9 @@ export class OrderItem extends BaseEntity {
 
     @Column({ comment : '주문 수량' })
     orderCount: number;
+
+    @Column({ comment : '주문 주소', type : 'json'})
+    address: Address;
 
     @CreateDateColumn({ comment : '생성 일자' })
     createdAt: Date;

@@ -22,6 +22,9 @@ export class Item extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
 
+    @Column({ comment : '아이템 식별 코드 (uuid)' })
+    code: string;
+
     @Column({ comment : '상품 이름' })
     name: string;
 
