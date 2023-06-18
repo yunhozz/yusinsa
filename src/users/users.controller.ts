@@ -14,20 +14,21 @@ import {
     ValidationPipe
 } from '@nestjs/common';
 import {UsersService} from "./users.service";
-import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
+import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user-response.dto";
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto
-} from "./dto/user.request.dto";
-import {User} from "./user.entity";
+} from "./dto/user-request.dto";
+import {Role, User} from "./user.entity";
 import {GetUser} from "../common/decorator/get-user.decorator";
 import {ApiResponse} from "../common/response/api-response";
 import {Request, Response} from "express";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {AuthGuard} from "@nestjs/passport";
+import {Roles} from "../common/decorator/roles.decorator";
 
 @Controller('/api/users')
 export class UsersController {
@@ -49,8 +50,10 @@ export class UsersController {
      * @param pageNo: number
      * @param pageSize: number
      */
+    // TODO: @Roles 데코레이터 관련 guard 설정
     @Get('/q')
     @UseGuards(AuthGuard())
+    @Roles(Role.ADMIN)
     async getAllUsersPage(@Query('pageNo') pageNo?: number, @Query('pageSize') pageSize?: number): Promise<ApiResponse> {
         const page: PageRequest = new PageRequest(pageNo, pageSize);
         const users: Page<User> = await this.userService.findAllUsersPage(page);
@@ -76,10 +79,10 @@ export class UsersController {
                     secure : true,
                     maxAge : 180000 // 3 min
                 });
-                return ApiResponse.ok(HttpStatus.CREATED, 'JWT 토큰이 재발행 되었습니다.');
+                return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 재발행 되었습니다.');
             }
 
-            return ApiResponse.ok(HttpStatus.CREATED, 'JWT 토큰이 아직 유효합니다.');
+            return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 아직 유효합니다.');
 
         } catch (e) {
             return ApiResponse.fail(e.status, e.message);
@@ -125,7 +128,6 @@ export class UsersController {
             secure : true,
             maxAge : 180000 // 3 min
         });
-        console.log(`Bearer ${jwtTokenResponseDto.accessToken}`);
 
         return ApiResponse.ok(HttpStatus.CREATED, '로그인에 성공하였습니다.');
     }

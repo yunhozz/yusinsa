@@ -14,8 +14,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     constructor(private readonly userRepository: UserRepository) {
         super({
             secretOrKey : process.env.JWT_SECRET || jwtConfig.secret,
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration : true // 토큰 만료 검증은 서버에서 따로 진행
+            jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration : true // 토큰 만료 검증은 서버에서 따로 진행,
             // jwtFromRequest : ExtractJwt.fromExtractors([(req: Request) => {
             //     const token = req?.headers?.authorization;
             //     return token.split(' ')[1];
@@ -31,7 +31,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
         return {
             sub : user.id,
-            username : user.email
+            username : user.email,
+            roles : user.roles
         };
     }
 }

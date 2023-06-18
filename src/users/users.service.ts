@@ -17,8 +17,8 @@ import {
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto
-} from "./dto/user.request.dto";
-import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user.response.dto";
+} from "./dto/user-request.dto";
+import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user-response.dto";
 import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
@@ -64,7 +64,7 @@ export class UsersService {
         const user: User = await this.userRepository.findOneBy({ email });
 
         if (user && await bcrypt.compare(password, user.password)) {
-            return await this.generateJwtTokens(user.id, user.email);
+            return await this.generateJwtTokens(user.id, user.email, user.roles);
 
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
@@ -84,7 +84,8 @@ export class UsersService {
             try {
                 const sub = decode['sub'];
                 const username = decode['username'];
-                return await this.generateJwtTokens(sub, username);
+                const roles = decode['roles'];
+                return await this.generateJwtTokens(sub, username, roles);
 
             } catch (e) {
                 switch (e.message) {
@@ -164,8 +165,8 @@ export class UsersService {
         return user;
     }
 
-    private async generateJwtTokens(sub: bigint, username: string): Promise<JwtTokenResponseDto> {
-        const payload: TokenPayload = { sub, username };
+    private async generateJwtTokens(sub: bigint, username: string, roles: Role[]): Promise<JwtTokenResponseDto> {
+        const payload: TokenPayload = { sub, username, roles };
         const secret = jwtConfig.secret;
 
         const accessToken = this.jwtService.sign(payload, {
@@ -181,6 +182,7 @@ export class UsersService {
         const accessTokenExpiry = jwtConfig.accessToken.expiresIn; // 3600 sec (1h)
         const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)
 
+        console.log(accessToken);
         await this.redisService.set(username, refreshToken, refreshTokenExpiry);
         const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry * 1000)));
         return new JwtTokenResponseDto(accessToken, refreshToken, date);
