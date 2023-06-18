@@ -1,17 +1,24 @@
 import {
     BaseEntity,
+    ChildEntity,
     Column,
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
     OneToMany,
     PrimaryGeneratedColumn,
+    TableInheritance,
     UpdateDateColumn
 } from "typeorm";
 import {OrderItem} from "./order-item.entity";
 
 @Entity()
-export abstract class Item extends BaseEntity {
+@TableInheritance({ column : {
+        type : 'varchar',
+        name : 'type'
+    }
+})
+export class Item extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
 
@@ -37,20 +44,20 @@ export abstract class Item extends BaseEntity {
     deletedAt!: Date | null;
 }
 
-@Entity()
+@ChildEntity()
 export class Shirts extends Item {
     @Column()
-    size: string;
+    shirtSize: string;
 }
 
-@Entity()
+@ChildEntity()
 export class Pants extends Item {
     @Column()
-    size: number;
+    pantsSize: number;
 }
 
-@Entity()
+@ChildEntity()
 export class Shoes extends Item {
     @Column()
-    size: number;
+    shoesSize: number;
 }
