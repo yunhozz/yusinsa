@@ -4,26 +4,20 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    ManyToOne,
     OneToMany,
-    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
-import {User} from "../../users/user.entity";
 import {OrderItem} from "./order-item.entity";
-import {Delivery} from "./delivery.entity";
+import {Address} from "../../common/element/address.interface";
 
 @Entity()
 export class Order extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
 
-    @ManyToOne(() => User, user => user.orders)
-    user: User;
-
-    @OneToOne(() => Delivery, delivery => delivery.order)
-    delivery: Delivery;
+    @Column({ comment : '유저 ID', nullable : false, type : "bigint" })
+    userId: bigint;
 
     @Column({ comment : '주문 식별 코드 (uuid)' })
     orderCode: string;
@@ -31,8 +25,8 @@ export class Order extends BaseEntity {
     @Column({ comment : '주문 총 가격' })
     totalPrice: number;
 
-    @Column({ comment : '주문 주소' })
-    address: string;
+    @Column({ comment : '주문 주소', type : "json" })
+    address: Address;
 
     @OneToMany(() => OrderItem, orderItem => orderItem.order)
     orderItems: OrderItem[];
