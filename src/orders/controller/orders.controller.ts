@@ -18,6 +18,7 @@ import {GetUser} from "../../common/decorator/get-user.decorator";
 import {Request, Response} from "express";
 import {ItemInventory} from "../../common/element/item-inventory.form";
 import {OrderRequestDto} from "../dto/order-request.dto";
+import {PageRequest} from "../../common/pagination/page-request";
 
 @Controller('/api/orders')
 @UseGuards(AuthGuard())
@@ -25,14 +26,20 @@ export class OrdersController {
     constructor(private readonly orderService: OrdersService) {}
 
     @Get()
-    async getOrderList(): Promise<ApiResponse> {
-        return ApiResponse.ok(HttpStatus.OK, '주문내역 조회에 성공하였습니다.');
+    async getOrderList(
+        @GetUser() userId: bigint,
+        @Query('pageNo', ParseIntPipe) pageNo: number,
+        @Query('pageSize', ParseIntPipe) pageSize: number
+    ): Promise<ApiResponse> {
+        const pageRequest = new PageRequest(pageNo, pageSize);
+        const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest);
+        return ApiResponse.ok(HttpStatus.OK, '주문내역 조회에 성공하였습니다.', orderPage);
     }
 
     @Post()
     async addGoodsIntoBasket(
         @GetUser() userId: bigint,
-        @Query(ParseIntPipe) itemId: bigint,
+        @Query('itemId', ParseIntPipe) itemId: bigint,
         @Body(ValidationPipe) dto: OrderRequestDto,
         @Req() req: Request, @Res({ passthrough : true }) res: Response
     ): Promise<ApiResponse> {
