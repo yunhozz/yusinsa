@@ -11,15 +11,7 @@ import {
     UpdateDateColumn
 } from "typeorm";
 import {OrderItem} from "./order-item.entity";
-import {Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory} from "./category.enum";
-
-// Const Assertions
-const CATEGORIES = {
-    TOP : TopCategory,
-    OUTER : OuterCategory,
-    PANTS : PantsCategory,
-    SHOES : ShoesCategory
-} as const;
+import {CATEGORIES, Gender} from "./category.enum";
 
 // 각 value 를 상수 타입으로 사용 (Const Assertions + Discriminated Union)
 type Category = typeof CATEGORIES[keyof typeof CATEGORIES];

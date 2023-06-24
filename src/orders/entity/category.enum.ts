@@ -36,3 +36,11 @@ export enum Gender {
     WOMAN = 'woman',
     UNISEX = 'unisex'
 }
+
+// Const Assertions
+export const CATEGORIES = {
+    TOP : TopCategory,
+    OUTER : OuterCategory,
+    PANTS : PantsCategory,
+    SHOES : ShoesCategory
+} as const;
