@@ -3,21 +3,22 @@ import {
     Column,
     CreateDateColumn,
     DeleteDateColumn,
-    Entity,
+    Entity, ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
 import {OrderItem} from "./order-item.entity";
 import {Address} from "../../common/element/address.interface";
+import {User} from "../../users/user.entity";
 
 @Entity()
 export class Order extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
 
-    @Column({ comment : '유저 ID', nullable : false, type : "bigint" })
-    userId: bigint;
+    @ManyToOne(() => User, user => user.orders)
+    user: User;
 
     @Column({ comment : '주문 식별 코드 (uuid)' })
     orderCode: string;
