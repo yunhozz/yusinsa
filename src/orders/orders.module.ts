@@ -1,5 +1,5 @@
 import {Module} from '@nestjs/common';
-import {OrdersController} from './orders.controller';
+import {OrdersController} from './controller/orders.controller';
 import {OrdersService} from './orders.service';
 import {TypeOrmModule} from "@nestjs/typeorm";
 import {Order} from "./entity/order.entity";
@@ -11,18 +11,20 @@ import {OrderRepository} from "./repository/order.repository";
 import {OrderItemRepository} from "./repository/order-item.repository";
 import {ItemRepository} from "./repository/item.repository";
 import {DeliveryRepository} from "./repository/delivery.repository";
+import {User} from "../users/user.entity";
+import {ItemsController} from "./controller/items.controller";
 
 @Module({
     imports : [
-        TypeOrmModule.forFeature([Order, OrderItem, Item, Delivery]),
+        TypeOrmModule.forFeature([Order, OrderItem, Item, Delivery, User]),
         TypeOrmCustomModule.forCustomRepository([
             OrderRepository,
             OrderItemRepository,
             ItemRepository,
             DeliveryRepository
-        ]),
+        ])
     ],
-    controllers : [OrdersController],
+    controllers : [OrdersController, ItemsController],
     providers : [OrdersService],
     exports : []
 })
