@@ -11,6 +11,29 @@ import {
     UpdateDateColumn
 } from "typeorm";
 import {OrderItem} from "./order-item.entity";
+import {Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory} from "./category.enum";
+
+// Const Assertions
+const CATEGORIES = {
+    TOP : TopCategory,
+    OUTER : OuterCategory,
+    PANTS : PantsCategory,
+    SHOES : ShoesCategory
+} as const;
+
+// 각 value 를 상수 타입으로 사용 (Const Assertions + Discriminated Union)
+type Category = typeof CATEGORIES[keyof typeof CATEGORIES];
+// type Category = TopCategory | OuterCategory | PantsCategory | ShoesCategory;
+
+/*
+typeof : 객체 데이터를 객체 타입으로 변환해주는 연산자
+keyof : 객체 형태의 타입을 따로 속성들만 뽑아 모아 유니온 타입으로 만들어주는 연산자
+ */
+
+interface ItemInfo {
+    category: Category;
+    attribute: object;
+}
 
 @Entity()
 @TableInheritance({ column : {
@@ -48,19 +71,37 @@ export class Item extends BaseEntity {
 }
 
 @ChildEntity()
-export class Shirts extends Item {
-    @Column()
-    shirtSize: string;
+export class Top extends Item implements ItemInfo {
+    category: typeof CATEGORIES.TOP;
+    attribute: {
+        gender: Gender;
+        size: string;
+    }
 }
 
 @ChildEntity()
-export class Pants extends Item {
-    @Column()
-    pantsSize: number;
+export class Outer extends Item implements ItemInfo {
+    category: typeof CATEGORIES.OUTER;
+    attribute: {
+        gender: Gender;
+        size: string;
+    }
 }
 
 @ChildEntity()
-export class Shoes extends Item {
-    @Column()
-    shoesSize: number;
+export class Pants extends Item implements ItemInfo {
+    category: typeof CATEGORIES.PANTS;
+    attribute: {
+        gender: Gender;
+        size: number;
+    }
+}
+
+@ChildEntity()
+export class Shoes extends Item implements ItemInfo {
+    category: typeof CATEGORIES.SHOES;
+    attribute: {
+        gender: Gender;
+        size: number;
+    }
 }
