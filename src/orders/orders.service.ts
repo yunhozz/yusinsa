@@ -38,8 +38,8 @@ export class OrdersService {
         const orders = await this.orderRepository.find({
             relations : { user : true },
             where : { user : Equal(user), deletedAt : IsNull() },
-            take : page.getOffset(),
-            skip : page.getLimit(),
+            skip : page.getOffset(),
+            take : page.getLimit(),
             order : { id : "DESC" }
         });
 
