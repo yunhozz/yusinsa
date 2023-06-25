@@ -8,7 +8,6 @@ import {
     Query,
     Req,
     Res,
-    UseFilters,
     UseGuards,
     ValidationPipe
 } from '@nestjs/common';
@@ -19,11 +18,9 @@ import {GetUser} from "../../common/decorator/get-user.decorator";
 import {Request, Response} from "express";
 import {PageRequest} from "../../common/pagination/page-request";
 import {Cart, CartItemRequestDto, CartRequestDto, OrderInfoRequestDto} from "../dto/order-request.dto";
-import {HttpExceptionFilter} from "../../common/exception/http-exception.filter";
 
 @Controller('/api/orders')
 @UseGuards(AuthGuard())
-@UseFilters(new HttpExceptionFilter())
 export class OrdersController {
     constructor(private readonly orderService: OrdersService) {}
 
