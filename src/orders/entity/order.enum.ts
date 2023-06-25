@@ -37,6 +37,12 @@ export enum Gender {
     UNISEX = 'unisex'
 }
 
+export enum OrderStatus {
+    READY = 'ready',
+    COMPLETE = 'complete',
+    CANCEL = 'cancel'
+}
+
 // Const Assertions
 export const CATEGORIES = {
     TOP : TopCategory,

@@ -11,21 +11,7 @@ import {
     UpdateDateColumn
 } from "typeorm";
 import {OrderItem} from "./order-item.entity";
-import {CATEGORIES, Gender} from "./category.enum";
-
-// 각 value 를 상수 타입으로 사용 (Const Assertions + Discriminated Union)
-type Category = typeof CATEGORIES[keyof typeof CATEGORIES];
-// type Category = TopCategory | OuterCategory | PantsCategory | ShoesCategory;
-
-/*
-typeof : 객체 데이터를 객체 타입으로 변환해주는 연산자
-keyof : 객체 형태의 타입을 따로 속성들만 뽑아 모아 유니온 타입으로 만들어주는 연산자
- */
-
-interface ItemInfo {
-    category: Category;
-    attribute: object;
-}
+import {CATEGORIES, Gender} from "./order.enum";
 
 @Entity()
 @TableInheritance({ column : {
@@ -49,7 +35,7 @@ export class Item extends BaseEntity {
     @Column({ comment : '상품 재고' })
     stockQuantity: number;
 
-    @OneToMany(() => OrderItem, orderItems => orderItems.item)
+    @OneToMany(() => OrderItem, orderItems => orderItems.item, { lazy : true })
     orderItems: OrderItem[];
 
     @CreateDateColumn({ comment : '생성 일자' })
@@ -60,6 +46,20 @@ export class Item extends BaseEntity {
 
     @DeleteDateColumn({ comment : '삭제 일자', nullable : true })
     deletedAt!: Date | null;
+}
+
+// 각 value 를 상수 타입으로 사용 (Const Assertions + Discriminated Union)
+type Category = typeof CATEGORIES[keyof typeof CATEGORIES];
+// type Category = TopCategory | OuterCategory | PantsCategory | ShoesCategory;
+
+/*
+typeof : 객체 데이터를 객체 타입으로 변환해주는 연산자
+keyof : 객체 형태의 타입을 따로 속성들만 뽑아 모아 유니온 타입으로 만들어주는 연산자
+ */
+
+interface ItemInfo {
+    category: Category;
+    attribute: object;
 }
 
 @ChildEntity()
