@@ -3,7 +3,8 @@ import {
     Column,
     CreateDateColumn,
     DeleteDateColumn,
-    Entity, ManyToOne,
+    Entity,
+    ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn
@@ -11,6 +12,7 @@ import {
 import {OrderItem} from "./order-item.entity";
 import {Address} from "../../common/element/address.interface";
 import {User} from "../../users/user.entity";
+import {OrderStatus} from "./order.enum";
 
 @Entity()
 export class Order extends BaseEntity {
@@ -26,8 +28,11 @@ export class Order extends BaseEntity {
     @Column({ comment : '주문 총 가격' })
     totalPrice: number;
 
-    @Column({ comment : '주문 주소', type : "json" })
+    @Column({ comment : '주문 주소', type : 'json' })
     address: Address;
+
+    @Column({ comment : '주문 상태', type : 'enum', enum : OrderStatus })
+    status: OrderStatus;
 
     @OneToMany(() => OrderItem, orderItem => orderItem.order)
     orderItems: OrderItem[];
