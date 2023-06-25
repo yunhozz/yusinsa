@@ -24,28 +24,34 @@ export class CreateUserRequestDto {
     password: string;
 
     @IsString()
+    @IsNotEmpty()
     name: string;
 
     @IsInt()
     age: number;
 
-    @IsNotEmpty()
     @IsEnum(Gender)
+    @IsNotEmpty()
     gender: Gender;
 
     @IsString()
+    @IsNotEmpty()
     si: string;
 
     @IsString()
+    @IsNotEmpty()
     gu: string;
 
     @IsString()
+    @IsNotEmpty()
     dong: string;
 
     @IsString()
+    @IsNotEmpty()
     etc: string;
 
     @IsNumberString()
+    @IsNotEmpty()
     phoneNumber: number;
 }
 
