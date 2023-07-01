@@ -12,7 +12,7 @@ import {UserRepository} from "../users/user.repository";
 import {Equal, IsNull} from "typeorm";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
-import {OrderRequestDto} from "./dto/order-request.dto";
+import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
 import {OrderStatus} from "./entity/order.enum";
 
 @Injectable()
@@ -28,62 +28,114 @@ export class OrdersService {
         private readonly itemRepository: ItemRepository
     ) {}
 
-    /*
-    유저가 제품의 정보 입력 (사이즈, 수량 등) -> 장바구니 추가 (쿠키 이용) -> 장바구니에서 일괄 구매 -> 유저 정보 입력 (주소, 전화번호, 결제 방식 등)
-     */
-
-    // TODO : 주문 상태에 따른 조회 (OrderStatus -> ready, complete, cancel)
-    async findOrdersByUserId(userId: bigint, page: PageRequest): Promise<Page<Order>> {
+    // TODO : 주문 상태에 따른 조회 (OrderStatus -> ready, done, complete, cancel)
+    // 주문 내역 조회
+    async findOrdersByUserId(userId: bigint, page: PageRequest, status?: OrderStatus): Promise<Page<Order>> {
         const user = await this.userRepository.findOneBy({ id: userId });
         const orders = await this.orderRepository.find({
             relations : { user : true },
-            where : { user : Equal(user), deletedAt : IsNull() },
+            where : { user : Equal(user), status },
             skip : page.getOffset(),
             take : page.getLimit(),
             order : { id : "DESC" }
         });
-
         const totalCount = await this.orderRepository.countBy({ user : Equal(user) });
+
         return new Page(page.pageSize, totalCount, orders);
     }
 
-    async makeOrderFromCartItems(userId: bigint, dto: OrderRequestDto): Promise<string> {
-        const { cartItems, si, gu, dong, etc } = dto;
+    // TODO
+    // 장바구니 내역 조회
+    async findCartOrdersByUserId(userId: bigint): Promise<any> {
         const user = await this.userRepository.findOneBy({ id : userId });
-        const order = await this.orderRepository.create({
-            user,
-            orderCode : uuid(),
-            totalPrice : null,
-            address : { si, gu, dong, etc },
-            status : OrderStatus.READY,
-            orderItems : []
+        await this.orderItemRepository.find({
+            relations : { order : true, item : true },
+            where : { deletedAt : IsNull() }
+        })
+    }
+
+    async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<{ order: string, item: string, count: number }> {
+        const { itemCode, size, count } = dto;
+        const user = await this.userRepository.findOneBy({ id : userId });
+        const item = await this.itemRepository.findOneBy({ code : itemCode, size });
+
+        const orderItem = await this.orderItemRepository.create({
+            order : null,
+            item,
+            orderCount : count
         });
 
-        const orderItems: OrderItem[] = [];
-        let totalPrice = 0;
-        for (const cartItem of cartItems) {
-            const item = await this.itemRepository.findOneBy({ code : cartItem.itemCode });
-            const remain = item.stockQuantity - cartItem.count;
-            if (remain < 0) {
-                throw new BadRequestException('해당 상품의 재고가 부족합니다.');
-            }
-
-            const orderItem = await this.orderItemRepository.create({
-                order,
-                item,
-                orderCount : cartItem.count,
-                address : { si, gu, dong, etc }
-            });
+        let order: Order;
+        const findOrder = await this.orderRepository.findOneBy({
+            user : Equal(user),
+            status : OrderStatus.READY
+        });
+        if (findOrder) {
+            order = findOrder;
+            const orderItems = order.orderItems;
             orderItems.push(orderItem);
-            totalPrice += item.price * cartItem.count;
-            item.stockQuantity = remain;
+            await this.orderRepository.update({ id : order.id }, { orderItems });
+        } else {
+            order = await this.orderRepository.create({
+                user,
+                code : uuid(),
+                totalPrice : 0,
+                address : null,
+                status : OrderStatus.READY,
+                orderItems : [orderItem]
+            });
+            await this.orderRepository.save(order);
         }
+        orderItem.order = order;
+        await this.orderItemRepository.save(orderItem);
 
-        order.orderItems = orderItems;
-        order.totalPrice = totalPrice;
-        await this.orderRepository.save(order);
-        await this.orderItemRepository.save(orderItems);
+        return {
+            order : orderItem.order.code,
+            item : orderItem.item.code,
+            count : orderItem.orderCount
+        };
+    }
 
-        return order.orderCode;
+    // 주문 완료 시 주문 상태 변경, 장바구니 삭제
+    async makeOrderFromCartItems(userId: bigint, dto: OrderRequestDto): Promise<Order> {
+        const { cart, si, gu, dong, etc } = dto;
+        const user = await this.userRepository.findOneBy({ id : userId });
+        const order = await this.orderRepository.findOneBy({
+            user : Equal(user),
+            code : cart[0].orderCode,
+            status : OrderStatus.READY,
+        });
+
+        // TODO: 상품 재고 부족할 때 이전의 update 건 처리
+        let resultPrice = 0;
+        for (const c of cart) {
+            const item = await this.itemRepository.findOneBy({ code : c.itemCode });
+            const remainQuantity = item.stockQuantity - c.count;
+            if (remainQuantity < 0) {
+                throw new BadRequestException(`상품 재고 부족. 이름 : ${item.name}, 재고 : ${item.stockQuantity}, 주문 수량 : ${c.count}`);
+            }
+            resultPrice += item.price * c.count;
+            await this.itemRepository.update({ id : item.id }, { stockQuantity : remainQuantity });
+        }
+        await this.orderRepository.update({ id : order.id }, {
+            totalPrice : resultPrice,
+            address : { si, gu, dong, etc },
+            status : OrderStatus.DONE
+        });
+        await this.orderItemRepository.softDelete({ order : Equal(order) });
+
+        return order;
+    }
+
+    // TODO
+    // 장바구니 내 아이템 단건 취소
+    async deleteCartItem() {
+
+    }
+
+    // TODO
+    // 주문 일괄 취소
+    async cancelOrder(userId: bigint, orderId: bigint): Promise<any> {
+
     }
 }
