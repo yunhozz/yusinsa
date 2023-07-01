@@ -61,19 +61,25 @@ export class OrdersController {
 
     @Post('/cart')
     async addGoodsIntoCart(
-        @Query('itemCode') itemCode: string,
-        @Body(ValidationPipe) dto: CartRequestDto,
+        @GetUser() userId: bigint,
+        @Body(ValidationPipe) dto: OrderItemRequestDto,
         @Req() req: Request, @Res({ passthrough : true }) res: Response
     ): Promise<ApiResponse> {
+        const orderInfo = await this.orderService.addOrderHistory(userId, dto);
         const cart = req?.cookies['cart'];
-        const { size, count } = dto;
-        const item: CartItemRequestDto = { itemCode, size, count };
 
-        cart.isEmpty() ? Cart.items.push(item) : cart.items.push(item);
-        res.cookie('cart', Cart, {
-            path : '/',
-            httpOnly : true
-        });
+        if (cart) {
+            cart.value.push(orderInfo);
+            res.cookie('cart', cart, {
+                path : '/',
+                httpOnly : true
+            });
+        } else {
+            res.cookie('cart', [orderInfo], {
+                path : '/',
+                httpOnly : true
+            });
+        }
 
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');
     }
