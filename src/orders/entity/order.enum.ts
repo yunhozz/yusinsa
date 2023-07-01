@@ -39,6 +39,7 @@ export enum Gender {
 
 export enum OrderStatus {
     READY = 'ready',
+    DONE = 'done',
     COMPLETE = 'complete',
     CANCEL = 'cancel'
 }

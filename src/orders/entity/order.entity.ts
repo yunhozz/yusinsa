@@ -23,7 +23,7 @@ export class Order extends BaseEntity {
     user: User;
 
     @Column({ comment : '주문 식별 코드 (uuid)' })
-    orderCode: string;
+    code: string;
     
     @Column({ comment : '주문 총 가격' })
     totalPrice: number;

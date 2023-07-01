@@ -23,11 +23,17 @@ export class Item extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
 
-    @Column({ comment : '아이템 식별 코드 (uuid)' })
+    @Column({ comment : '상품 식별 코드 (uuid)' })
     code: string;
+
+    @Column({ comment : '상품 성별', type : "enum", enum : Gender })
+    gender: Gender;
 
     @Column({ comment : '상품 이름' })
     name: string;
+
+    @Column({ comment : '상품 사이즈' })
+    size: string;
 
     @Column({ comment : '상품 수량' })
     price: number;
@@ -57,43 +63,26 @@ typeof : 객체 데이터를 객체 타입으로 변환해주는 연산자
 keyof : 객체 형태의 타입을 따로 속성들만 뽑아 모아 유니온 타입으로 만들어주는 연산자
  */
 
-interface ItemInfo {
+@ChildEntity()
+export class Top extends Item {
+    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.TOP })
     category: Category;
-    attribute: object;
 }
 
 @ChildEntity()
-export class Top extends Item implements ItemInfo {
-    category: typeof CATEGORIES.TOP;
-    attribute: {
-        gender: Gender;
-        size: string;
-    }
+export class Outer extends Item {
+    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.OUTER })
+    category: Category;
 }
 
 @ChildEntity()
-export class Outer extends Item implements ItemInfo {
-    category: typeof CATEGORIES.OUTER;
-    attribute: {
-        gender: Gender;
-        size: string;
-    }
+export class Pants extends Item {
+    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.PANTS })
+    category: Category;
 }
 
 @ChildEntity()
-export class Pants extends Item implements ItemInfo {
-    category: typeof CATEGORIES.PANTS;
-    attribute: {
-        gender: Gender;
-        size: number;
-    }
-}
-
-@ChildEntity()
-export class Shoes extends Item implements ItemInfo {
-    category: typeof CATEGORIES.SHOES;
-    attribute: {
-        gender: Gender;
-        size: number;
-    }
+export class Shoes extends Item {
+    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.SHOES })
+    category: Category;
 }
