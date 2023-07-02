@@ -1,5 +1,5 @@
 import {v1 as uuid} from 'uuid';
-import {BadRequestException, Injectable} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import {OrderRepository} from "./repository/order.repository";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Order} from "./entity/order.entity";
@@ -9,11 +9,12 @@ import {OrderItem} from "./entity/order-item.entity";
 import {Item} from "./entity/item.entity";
 import {User} from "../users/user.entity";
 import {UserRepository} from "../users/user.repository";
-import {Brackets, Equal, IsNull} from "typeorm";
+import {Brackets, Equal, IsNull, Not} from "typeorm";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
 import {OrderStatus} from "./entity/order.enum";
+import {RuntimeException} from "@nestjs/core/errors/exceptions";
 
 @Injectable()
 export class OrdersService {
@@ -37,9 +38,8 @@ export class OrdersService {
             .innerJoin('order.user', 'user')
             .where('order.user = :user', { user })
             .andWhere(new Brackets(qb => {
-                status ?
-                    qb.where('order.status = :status', { status }) :
-                    qb.where('order.status != :status', { status : null });
+                const q = 'order.status = :status';
+                status ? qb.where(q, { status }) : qb.where(q, { status : Not(null) });
             }))
             .withDeleted()
             .offset(page.getOffset())
@@ -148,7 +148,16 @@ export class OrdersService {
 
     // TODO
     // 주문 일괄 취소
-    async cancelOrder(userId: bigint, orderId: bigint): Promise<any> {
-
+    async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
+        await this.orderRepository.update({ code : orderCode, status : Not(OrderStatus.CANCEL) }, { status : OrderStatus.CANCEL })
+            .catch(e => {
+                if (e instanceof NotFoundException) {
+                    throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. order code : ${orderCode}`);
+                } else {
+                    throw new RuntimeException(e.message());
+                }
+            });
+        await this.orderRepository.softDelete({ code : orderCode });
+        return orderCode;
     }
 }

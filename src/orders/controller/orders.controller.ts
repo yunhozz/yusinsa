@@ -6,6 +6,7 @@ import {
     Param,
     ParseEnumPipe,
     ParseIntPipe,
+    Patch,
     Post,
     Query,
     Req,
@@ -71,20 +72,27 @@ export class OrdersController {
     ): Promise<ApiResponse> {
         const orderInfo = await this.orderService.addOrderHistory(userId, dto);
         const cart = req?.cookies['cart'];
+        let value;
+        const option = { path : '/', httpOnly : true };
 
         if (cart) {
             cart.value.push(orderInfo);
-            res.cookie('cart', cart, {
-                path : '/',
-                httpOnly : true
-            });
-        } else {
-            res.cookie('cart', [orderInfo], {
-                path : '/',
-                httpOnly : true
-            });
-        }
-
+            value = cart;
+        } else value = [orderInfo];
+        res.cookie('cart', value, option);
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');
+    }
+
+    // TODO
+    @Patch('/:code')
+    async cancelOrder(@Param('code') orderCode: string): Promise<ApiResponse> {
+        const code = await this.orderService.changeStatusCancelAndDeleteOrder(orderCode);
+        return ApiResponse.ok(HttpStatus.NO_CONTENT, `해당 주문건을 성공적으로 취소하였습니다. order code : ${code}`);
+    }
+
+    // TODO
+    @Patch('/cart')
+    async cancelItemOnCart(@Query('item') itemCode: string): Promise<ApiResponse> {
+        return ApiResponse.ok(HttpStatus.NO_CONTENT, '장바구니의 해당 상품을 성공적으로 취소하였습니다.');
     }
 }
