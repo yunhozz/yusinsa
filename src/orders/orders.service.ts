@@ -51,9 +51,10 @@ export class OrdersService {
         await this.orderItemRepository.find({
             relations : { order : true, item : true },
             where : { deletedAt : IsNull() }
-        })
+        });
     }
 
+    // 장바구니에 상품 추가
     async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<{ order: string, item: string, count: number }> {
         const { itemCode, size, count } = dto;
         const user = await this.userRepository.findOneBy({ id : userId });
@@ -71,10 +72,10 @@ export class OrdersService {
             status : OrderStatus.READY
         });
         if (findOrder) {
-            order = findOrder;
-            const orderItems = order.orderItems;
+            orderItem.order = findOrder;
+            const orderItems = findOrder.orderItems;
             orderItems.push(orderItem);
-            await this.orderRepository.update({ id : order.id }, { orderItems });
+            await this.orderRepository.update({ id : findOrder.id }, { orderItems });
         } else {
             order = await this.orderRepository.create({
                 user,
@@ -82,8 +83,10 @@ export class OrdersService {
                 totalPrice : 0,
                 address : null,
                 status : OrderStatus.READY,
-                orderItems : [orderItem]
+                orderItems : []
             });
+            orderItem.order = order;
+            order.orderItems.push(orderItem);
             await this.orderRepository.save(order);
         }
         orderItem.order = order;
