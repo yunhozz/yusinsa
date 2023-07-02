@@ -71,6 +71,7 @@ export class OrdersService {
             user : Equal(user),
             status : OrderStatus.READY
         });
+
         if (findOrder) {
             orderItem.order = findOrder;
             const orderItems = findOrder.orderItems;
@@ -109,7 +110,7 @@ export class OrdersService {
             status : OrderStatus.READY,
         });
 
-        // TODO: 상품 재고 부족할 때 이전의 update 건 처리
+        const quantities = new Map<bigint, number>();
         let resultPrice = 0;
         for (const c of cart) {
             const item = await this.itemRepository.findOneBy({ code : c.itemCode });
@@ -118,15 +119,18 @@ export class OrdersService {
                 throw new BadRequestException(`상품 재고 부족. 이름 : ${item.name}, 재고 : ${item.stockQuantity}, 주문 수량 : ${c.count}`);
             }
             resultPrice += item.price * c.count;
-            await this.itemRepository.update({ id : item.id }, { stockQuantity : remainQuantity });
+            quantities.set(item.id, remainQuantity);
+        }
+        for (const [itemId, quantity] of quantities.entries()) {
+            await this.itemRepository.update({ id : itemId }, { stockQuantity : quantity });
         }
         await this.orderRepository.update({ id : order.id }, {
             totalPrice : resultPrice,
             address : { si, gu, dong, etc },
             status : OrderStatus.DONE
         });
-        await this.orderItemRepository.softDelete({ order : Equal(order) });
 
+        await this.orderItemRepository.softDelete({ order : Equal(order) });
         return order;
     }
 
