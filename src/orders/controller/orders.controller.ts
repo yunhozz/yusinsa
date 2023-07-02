@@ -3,6 +3,8 @@ import {
     Controller,
     Get,
     HttpStatus,
+    Param,
+    ParseEnumPipe,
     ParseIntPipe,
     Post,
     Query,
@@ -30,7 +32,7 @@ export class OrdersController {
         @GetUser() userId: bigint,
         @Query('pageNo', ParseIntPipe) pageNo?: number,
         @Query('pageSize', ParseIntPipe) pageSize?: number,
-        @Query('status', ParseEnumPipe) status?: OrderStatus
+        @Query('status', new ParseEnumPipe(OrderStatus)) status?: OrderStatus
     ): Promise<ApiResponse> {
         const pageRequest = new PageRequest(pageNo, pageSize);
         const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest, status);
