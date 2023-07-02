@@ -17,7 +17,8 @@ import {ApiResponse} from "../../common/response/api-response";
 import {GetUser} from "../../common/decorator/get-user.decorator";
 import {Request, Response} from "express";
 import {PageRequest} from "../../common/pagination/page-request";
-import {Cart, CartItemRequestDto, CartRequestDto, OrderInfoRequestDto} from "../dto/order-request.dto";
+import {OrderItemRequestDto} from "../dto/order-request.dto";
+import {OrderStatus} from "../entity/order.enum";
 
 @Controller('/api/orders')
 @UseGuards(AuthGuard())
@@ -27,11 +28,12 @@ export class OrdersController {
     @Get()
     async getOrderList(
         @GetUser() userId: bigint,
-        @Query('pageNo', ParseIntPipe) pageNo: number,
-        @Query('pageSize', ParseIntPipe) pageSize: number
+        @Query('pageNo', ParseIntPipe) pageNo?: number,
+        @Query('pageSize', ParseIntPipe) pageSize?: number,
+        @Query('status', ParseEnumPipe) status?: OrderStatus
     ): Promise<ApiResponse> {
         const pageRequest = new PageRequest(pageNo, pageSize);
-        const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest);
+        const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest, status);
         return ApiResponse.ok(HttpStatus.OK, '주문내역 조회에 성공하였습니다.', orderPage);
     }
 

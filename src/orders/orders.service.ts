@@ -9,7 +9,7 @@ import {OrderItem} from "./entity/order-item.entity";
 import {Item} from "./entity/item.entity";
 import {User} from "../users/user.entity";
 import {UserRepository} from "../users/user.repository";
-import {Equal, IsNull} from "typeorm";
+import {Brackets, Equal, IsNull} from "typeorm";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
@@ -28,20 +28,26 @@ export class OrdersService {
         private readonly itemRepository: ItemRepository
     ) {}
 
-    // TODO : 주문 상태에 따른 조회 (OrderStatus -> ready, done, complete, cancel)
     // 주문 내역 조회
     async findOrdersByUserId(userId: bigint, page: PageRequest, status?: OrderStatus): Promise<Page<Order>> {
-        const user = await this.userRepository.findOneBy({ id: userId });
-        const orders = await this.orderRepository.find({
-            relations : { user : true },
-            where : { user : Equal(user), status },
-            skip : page.getOffset(),
-            take : page.getLimit(),
-            order : { id : "DESC" }
-        });
-        const totalCount = await this.orderRepository.countBy({ user : Equal(user) });
+        const user = await this.userRepository.findOneBy({ id : userId });
+        const [orders, count] = await this.orderRepository.createQueryBuilder()
+            .select('order')
+            .from(Order, 'order')
+            .innerJoin('order.user', 'user')
+            .where('order.user = :user', { user })
+            .andWhere(new Brackets(qb => {
+                status ?
+                    qb.where('order.status = :status', { status }) :
+                    qb.where('order.status != :status', { status : null });
+            }))
+            .withDeleted()
+            .offset(page.getOffset())
+            .limit(page.getLimit())
+            .orderBy('order.id', 'DESC')
+            .getManyAndCount();
 
-        return new Page(page.pageSize, totalCount, orders);
+        return new Page(page.pageSize, count, orders);
     }
 
     // TODO
