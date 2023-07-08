@@ -166,6 +166,7 @@ export class OrdersService {
             const item = orderItem.item;
             const orderCount = orderItem.orderCount;
             await this.itemRepository.update({ id : item.id }, { stockQuantity : item.stockQuantity + orderCount });
+            await this.orderItemRepository.softDelete({ id : orderItem.id });
         }
         await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
         return orderCode;
