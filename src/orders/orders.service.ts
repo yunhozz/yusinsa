@@ -31,14 +31,16 @@ export class OrdersService {
     private readonly logger = new Logger(OrdersService.name);
 
     // 주문 내역 조회
-    async findOrdersByUserId(userId: bigint, page: PageRequest, status?: OrderStatus): Promise<Page<Order>> {
+    async findOrdersByUserId(userId: bigint, page: PageRequest, status: OrderStatus): Promise<Page<Order>> {
         const [orders, count] = await this.orderRepository.createQueryBuilder('order')
             .select(['order.code', 'order.totalPrice', 'order.status'])
             .innerJoin('order', 'user')
             .where('user.id = :userId', { userId })
             .andWhere(new Brackets(qb => {
                 const q = 'order.status = :status';
-                status ? qb.where(q, { status }) : qb.where(q, { status : Not(null) });
+                if (status != OrderStatus.WHOLE) {
+                    qb.where(q, { status });
+                }
             }))
             .withDeleted()
             .offset(page.getOffset())

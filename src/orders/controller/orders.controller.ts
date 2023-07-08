@@ -31,9 +31,9 @@ export class OrdersController {
     @Get()
     async getOrderList(
         @GetUser() userId: bigint,
+        @Query('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
         @Query('pageNo', ParseIntPipe) pageNo?: number,
-        @Query('pageSize', ParseIntPipe) pageSize?: number,
-        @Query('status', new ParseEnumPipe(OrderStatus)) status?: OrderStatus
+        @Query('pageSize', ParseIntPipe) pageSize?: number
     ): Promise<ApiResponse> {
         const pageRequest = new PageRequest(pageNo, pageSize);
         const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest, status);

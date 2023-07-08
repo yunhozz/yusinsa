@@ -38,6 +38,7 @@ export enum Gender {
 }
 
 export enum OrderStatus {
+    WHOLE = 'whole',
     READY = 'ready',
     DONE = 'done',
     COMPLETE = 'complete',
