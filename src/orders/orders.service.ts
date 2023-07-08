@@ -1,5 +1,5 @@
 import {v1 as uuid} from 'uuid';
-import {BadRequestException, Injectable, Logger, NotFoundException} from '@nestjs/common';
+import {BadRequestException, Injectable, Logger} from '@nestjs/common';
 import {OrderRepository} from "./repository/order.repository";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Order} from "./entity/order.entity";
@@ -9,7 +9,7 @@ import {OrderItem} from "./entity/order-item.entity";
 import {Item} from "./entity/item.entity";
 import {User} from "../users/user.entity";
 import {UserRepository} from "../users/user.repository";
-import {Brackets, Equal, IsNull, Not} from "typeorm";
+import {Brackets, Equal, IsNull} from "typeorm";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
@@ -52,9 +52,14 @@ export class OrdersService {
     }
 
     // TODO
+    // 주문 내역 상세 조회
+    async findOrderDetails(orderCode: string): Promise<any> {
+
+    }
+
+    // TODO
     // 장바구니 내역 조회
     async findCartOrdersByUserId(userId: bigint): Promise<any> {
-        const user = await this.userRepository.findOneBy({ id : userId });
         await this.orderItemRepository.find({
             relations : { order : true, item : true },
             where : { deletedAt : IsNull() }
@@ -149,16 +154,20 @@ export class OrdersService {
 
     }
 
-    // TODO
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
-        await this.orderRepository.update({ code : orderCode, status : Not(OrderStatus.CANCEL) }, { status : OrderStatus.CANCEL })
-            .catch(e => {
-                this.logger.error(e.message);
-                throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. order code : ${orderCode}`);
-            });
+        const order = await this.orderRepository.findOneBy({ code : orderCode });
+        const orderItems = await this.orderItemRepository.find({
+            relations : { order : true },
+            where : { order : Equal(order) }
+        });
 
-        await this.orderRepository.softDelete({ code : orderCode });
+        for (const orderItem of orderItems) {
+            const item = orderItem.item;
+            const orderCount = orderItem.orderCount;
+            await this.itemRepository.update({ id : item.id }, { stockQuantity : item.stockQuantity + orderCount });
+        }
+        await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
         return orderCode;
     }
 }
