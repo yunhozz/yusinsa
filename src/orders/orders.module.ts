@@ -13,6 +13,7 @@ import {ItemRepository} from "./repository/item.repository";
 import {DeliveryRepository} from "./repository/delivery.repository";
 import {User} from "../users/user.entity";
 import {ItemsController} from "./controller/items.controller";
+import {PassportModule} from "@nestjs/passport";
 
 @Module({
     imports : [
@@ -22,7 +23,8 @@ import {ItemsController} from "./controller/items.controller";
             OrderItemRepository,
             ItemRepository,
             DeliveryRepository
-        ])
+        ]),
+        PassportModule.register({ defaultStrategy : 'jwt' })
     ],
     controllers : [OrdersController, ItemsController],
     providers : [OrdersService],
