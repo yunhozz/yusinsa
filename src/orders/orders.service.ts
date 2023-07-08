@@ -29,6 +29,8 @@ export class OrdersService {
         private readonly itemRepository: ItemRepository
     ) {}
 
+    private readonly logger = new Logger(OrdersService.name);
+
     // 주문 내역 조회
     async findOrdersByUserId(userId: bigint, page: PageRequest, status?: OrderStatus): Promise<Page<Order>> {
         const user = await this.userRepository.findOneBy({ id : userId });
@@ -118,10 +120,13 @@ export class OrdersService {
 
         const quantities = new Map<bigint, number>();
         let resultPrice = 0;
+
         for (const c of cart) {
             const item = await this.itemRepository.findOneBy({ code : c.itemCode });
             const remainQuantity = item.stockQuantity - c.count;
+
             if (remainQuantity < 0) {
+                this.logger.error('상품 재고 부족!!');
                 throw new BadRequestException(`상품 재고 부족. 이름 : ${item.name}, 재고 : ${item.stockQuantity}, 주문 수량 : ${c.count}`);
             }
             resultPrice += item.price * c.count;
@@ -151,12 +156,10 @@ export class OrdersService {
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
         await this.orderRepository.update({ code : orderCode, status : Not(OrderStatus.CANCEL) }, { status : OrderStatus.CANCEL })
             .catch(e => {
-                if (e instanceof NotFoundException) {
-                    throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. order code : ${orderCode}`);
-                } else {
-                    throw new RuntimeException(e.message());
-                }
+                this.logger.error(e.message);
+                throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. order code : ${orderCode}`);
             });
+
         await this.orderRepository.softDelete({ code : orderCode });
         return orderCode;
     }
