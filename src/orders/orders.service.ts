@@ -32,11 +32,10 @@ export class OrdersService {
 
     // 주문 내역 조회
     async findOrdersByUserId(userId: bigint, page: PageRequest, status?: OrderStatus): Promise<Page<Order>> {
-        const user = await this.userRepository.findOneBy({ id : userId });
         const [orders, count] = await this.orderRepository.createQueryBuilder('order')
             .select(['order.code', 'order.totalPrice', 'order.status'])
             .innerJoin('order', 'user')
-            .where('user.id = :userId', { userId : user.id })
+            .where('user.id = :userId', { userId })
             .andWhere(new Brackets(qb => {
                 const q = 'order.status = :status';
                 status ? qb.where(q, { status }) : qb.where(q, { status : Not(null) });
