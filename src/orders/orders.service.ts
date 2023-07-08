@@ -1,5 +1,5 @@
 import {v1 as uuid} from 'uuid';
-import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {OrderRepository} from "./repository/order.repository";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Order} from "./entity/order.entity";
@@ -14,7 +14,6 @@ import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
 import {OrderStatus} from "./entity/order.enum";
-import {RuntimeException} from "@nestjs/core/errors/exceptions";
 
 @Injectable()
 export class OrdersService {
@@ -34,11 +33,10 @@ export class OrdersService {
     // 주문 내역 조회
     async findOrdersByUserId(userId: bigint, page: PageRequest, status?: OrderStatus): Promise<Page<Order>> {
         const user = await this.userRepository.findOneBy({ id : userId });
-        const [orders, count] = await this.orderRepository.createQueryBuilder()
-            .select('order')
-            .from(Order, 'order')
-            .innerJoin('order.user', 'user')
-            .where('order.user = :user', { user })
+        const [orders, count] = await this.orderRepository.createQueryBuilder('order')
+            .select(['order.code', 'order.totalPrice', 'order.status'])
+            .innerJoin('order', 'user')
+            .where('user.id = :userId', { userId : user.id })
             .andWhere(new Brackets(qb => {
                 const q = 'order.status = :status';
                 status ? qb.where(q, { status }) : qb.where(q, { status : Not(null) });
@@ -98,7 +96,6 @@ export class OrdersService {
             order.orderItems.push(orderItem);
             await this.orderRepository.save(order);
         }
-        orderItem.order = order;
         await this.orderItemRepository.save(orderItem);
 
         return {
@@ -147,7 +144,7 @@ export class OrdersService {
 
     // TODO
     // 장바구니 내 아이템 단건 취소
-    async deleteCartItem() {
+    async deleteCartItem(orderCode: string, itemCode: string): Promise<any> {
 
     }
 
