@@ -54,35 +54,26 @@ export class Item extends BaseEntity {
     deletedAt!: Date | null;
 }
 
-// 각 value 를 상수 타입으로 사용 (Const Assertions + Discriminated Union)
-type Category = typeof CATEGORIES[keyof typeof CATEGORIES];
-// type Category = TopCategory | OuterCategory | PantsCategory | ShoesCategory;
-
-/*
-typeof : 객체 데이터를 객체 타입으로 변환해주는 연산자
-keyof : 객체 형태의 타입을 따로 속성들만 뽑아 모아 유니온 타입으로 만들어주는 연산자
- */
-
-@ChildEntity()
+@ChildEntity('T')
 export class Top extends Item {
-    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.TOP })
-    category: Category;
+    @Column({ comment : '상의 카테고리', type : 'enum', enum : CATEGORIES.TOP })
+    topCategory: typeof CATEGORIES.TOP;
 }
 
-@ChildEntity()
+@ChildEntity('O')
 export class Outer extends Item {
-    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.OUTER })
-    category: Category;
+    @Column({ comment : '아우터 카테고리', type : 'enum', enum : CATEGORIES.OUTER })
+    outerCategory: typeof CATEGORIES.OUTER;
 }
 
-@ChildEntity()
+@ChildEntity('P')
 export class Pants extends Item {
-    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.PANTS })
-    category: Category;
+    @Column({ comment : '바지 카테고리', type : 'enum', enum : CATEGORIES.PANTS })
+    pantsCategory: typeof CATEGORIES.PANTS;
 }
 
-@ChildEntity()
+@ChildEntity('S')
 export class Shoes extends Item {
-    @Column({ comment : '상품 카테고리', type : "enum", enum : CATEGORIES.SHOES })
-    category: Category;
+    @Column({ comment : '신발 카테고리', type : 'enum', enum : CATEGORIES.SHOES })
+    shoesCategory: typeof CATEGORIES.SHOES;
 }
