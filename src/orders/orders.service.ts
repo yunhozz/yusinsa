@@ -105,26 +105,22 @@ export class OrdersService {
 
         let order: Order;
         const findOrder = await this.orderRepository.findOneBy({
-            user : Equal(user),
+            user : Equal(user.id),
             status : OrderStatus.READY
         });
 
         if (findOrder) {
             orderItem.order = findOrder;
-            const orderItems = findOrder.orderItems;
-            orderItems.push(orderItem);
-            await this.orderRepository.update({ id : findOrder.id }, { orderItems });
         } else {
             order = await this.orderRepository.create({
                 user,
                 code : uuid(),
                 totalPrice : 0,
-                address : null,
+                address : {},
                 status : OrderStatus.READY,
-                orderItems : []
+                orderItems : [orderItem]
             });
             orderItem.order = order;
-            order.orderItems.push(orderItem);
             await this.orderRepository.save(order);
         }
         await this.orderItemRepository.save(orderItem);
@@ -139,9 +135,8 @@ export class OrdersService {
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
     async makeOrderFromCartItems(userId: bigint, dto: OrderRequestDto): Promise<Order> {
         const { cart, si, gu, dong, etc } = dto;
-        const user = await this.userRepository.findOneBy({ id : userId });
         const order = await this.orderRepository.findOneBy({
-            user : Equal(user),
+            user : Equal(userId),
             code : cart[0].orderCode,
             status : OrderStatus.READY,
         });
@@ -169,7 +164,7 @@ export class OrdersService {
             status : OrderStatus.DONE
         });
 
-        await this.orderItemRepository.softDelete({ order : Equal(order) });
+        await this.orderItemRepository.softDelete({ order : Equal(order.id) });
         return order;
     }
 
@@ -184,7 +179,7 @@ export class OrdersService {
         const order = await this.orderRepository.findOneBy({ code : orderCode });
         const orderItems = await this.orderItemRepository.find({
             relations : { order : true },
-            where : { order : Equal(order) }
+            where : { order : Equal(order.id) }
         });
 
         for (const orderItem of orderItems) {
