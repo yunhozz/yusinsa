@@ -84,7 +84,7 @@ export class OrdersService {
                 .getOneOrFail()
                 .catch(e => {
                     if (e instanceof EntityNotFoundError) {
-                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${item.code}`);
+                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item ID : ${itemId}`);
                     } else {
                         throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
@@ -109,7 +109,14 @@ export class OrdersService {
     async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<{ order: string, item: string, count: number }> {
         const { itemCode, size, count } = dto;
         const user = await this.userRepository.findOneBy({ id : userId });
-        const item = await this.itemRepository.findOneBy({ code : itemCode, size });
+        const item = await this.itemRepository.findOneBy({ code : itemCode, size })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${itemCode}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
 
         const orderItem = await this.orderItemRepository.create({
             order : null,
@@ -147,21 +154,34 @@ export class OrdersService {
     }
 
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
-    async makeOrderFromCartItems(userId: bigint, dto: OrderRequestDto): Promise<Order> {
+    async makeOrderFromCartItems(dto: OrderRequestDto): Promise<Order> {
         const { cart, si, gu, dong, etc } = dto;
         const order = await this.orderRepository.findOneBy({
-            user : Equal(userId),
             code : cart[0].orderCode,
-            status : OrderStatus.READY,
-        });
+            status : OrderStatus.READY
+        })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`장바구니가 비어있거나 해당 주문 건이 이미 진행되었습니다.`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
 
         const quantities = new Map<bigint, number>();
         let resultPrice = 0;
 
         for (const c of cart) {
-            const item = await this.itemRepository.findOneBy({ code : c.itemCode });
-            const remainQuantity = item.stockQuantity - c.count;
+            const item = await this.itemRepository.findOneBy({ code : c.itemCode })
+                .catch(e => {
+                    if (e instanceof EntityNotFoundError) {
+                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${c.itemCode}`);
+                    } else {
+                        throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                });
 
+            const remainQuantity = item.stockQuantity - c.count;
             if (remainQuantity < 0) {
                 this.logger.error('상품 재고 부족!!');
                 throw new BadRequestException(`상품 재고 부족. 이름 : ${item.name}, 재고 : ${item.stockQuantity}, 주문 수량 : ${c.count}`);
@@ -190,7 +210,14 @@ export class OrdersService {
 
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
-        const order = await this.orderRepository.findOneBy({ code : orderCode });
+        const order = await this.orderRepository.findOneBy({ code : orderCode })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${orderCode}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
         const orderItems = await this.orderItemRepository.find({
             relations : { order : true },
             where : { order : Equal(order.id) }
