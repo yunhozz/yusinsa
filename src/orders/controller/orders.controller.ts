@@ -87,16 +87,16 @@ export class OrdersController {
         @Body(ValidationPipe) dto: OrderItemRequestDto,
         @Req() req: Request, @Res({ passthrough : true }) res: Response
     ): Promise<ApiResponse> {
-        const orderInfo = await this.orderService.addOrderHistory(userId, dto);
+        const cartItem = await this.orderService.addOrderHistory(userId, dto);
         const cart = req?.cookies['cart'];
         let value;
         const option = { path : '/', httpOnly : true };
 
         if (cart) {
-            cart.push(orderInfo);
+            cart.push(cartItem);
             value = cart;
         } else {
-            value = [orderInfo];
+            value = [cartItem];
         }
         res.cookie('cart', value, option);
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');

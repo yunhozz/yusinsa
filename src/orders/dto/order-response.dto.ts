@@ -47,3 +47,15 @@ export class ItemResponseDto {
         this.price = item.price;
     }
 }
+
+export class CartResponseDto {
+    order: string;
+    item: string;
+    count: number;
+
+    constructor(order: string, item: string, count: number) {
+        this.order = order;
+        this.item = item;
+        this.count = count;
+    }
+}

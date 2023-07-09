@@ -14,7 +14,7 @@ import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
 import {OrderStatus} from "./entity/order.enum";
-import {ItemResponseDto, OrderItemResponseDto, OrderResponseDto} from "./dto/order-response.dto";
+import {CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto} from "./dto/order-response.dto";
 
 @Injectable()
 export class OrdersService {
@@ -106,7 +106,7 @@ export class OrdersService {
     }
 
     // 장바구니에 상품 추가
-    async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<{ order: string, item: string, count: number }> {
+    async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<CartResponseDto> {
         const { itemCode, size, count } = dto;
         const user = await this.userRepository.findOneBy({ id : userId });
         const item = await this.itemRepository.findOneBy({ code : itemCode, size })
@@ -124,7 +124,7 @@ export class OrdersService {
             orderCount : count
         });
 
-        let order: Order;
+        let order;
         const findOrder = await this.orderRepository.findOneBy({
             user : Equal(user.id),
             status : OrderStatus.READY
@@ -145,12 +145,7 @@ export class OrdersService {
             await this.orderRepository.save(order);
         }
         await this.orderItemRepository.save(orderItem);
-
-        return {
-            order : orderItem.order.code,
-            item : orderItem.item.code,
-            count : orderItem.orderCount
-        };
+        return new CartResponseDto(orderItem.order.code, orderItem.item.code, orderItem.orderCount);
     }
 
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
