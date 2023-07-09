@@ -20,7 +20,7 @@ import {ApiResponse} from "../../common/response/api-response";
 import {GetUser} from "../../common/decorator/get-user.decorator";
 import {Request, Response} from "express";
 import {PageRequest} from "../../common/pagination/page-request";
-import {OrderItemRequestDto} from "../dto/order-request.dto";
+import {AddressRequestDto, CartItemRequestDto, OrderItemRequestDto, OrderRequestDto} from "../dto/order-request.dto";
 import {OrderStatus} from "../entity/order.enum";
 
 @Controller('/api/orders')
@@ -63,23 +63,22 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.OK, '주문 상세 내역 조회에 성공하였습니다.', orderDetails);
     }
 
-    // TODO
     @Post()
     async makeOrderByCart(
-        @GetUser() userId: bigint,
-        @Body(ValidationPipe) dto: OrderInfoRequestDto,
+        @Body(ValidationPipe) dto: AddressRequestDto,
         @Req() req: Request, @Res({ passthrough : true }) res: Response
     ): Promise<ApiResponse> {
-        const cart = req.cookies['cart'];
-        const orderCode = await this.orderService.makeOrderFromCartItems(userId, {
-            cartItems : cart.items,
-            si : dto.si,
-            gu : dto.gu,
-            dong : dto.dong,
-            etc : dto.etc
-        });
-        res.clearCookie('cart', { path : '/' });
-        return ApiResponse.ok(HttpStatus.CREATED, '장바구니의 상품들을 성공적으로 주문하였습니다.', { order : orderCode });
+        const cart = req?.cookies['cart'];
+        const cartItems: CartItemRequestDto[] = [];
+        const { si, gu, dong, etc } = dto;
+
+        for (const c of cart) {
+            const cartItem = new CartItemRequestDto(c.order, c.item, c.count);
+            cartItems.push(cartItem);
+        }
+        const orderRequestDto = new OrderRequestDto(cartItems, si, gu, dong, etc);
+        const orderCode = await this.orderService.makeOrderFromCartItems(orderRequestDto);
+        return ApiResponse.ok(HttpStatus.CREATED, '장바구니의 상품들을 성공적으로 주문하였습니다.', orderCode);
     }
 
     @Post('/cart')
@@ -96,7 +95,9 @@ export class OrdersController {
         if (cart) {
             cart.push(orderInfo);
             value = cart;
-        } else value = [orderInfo];
+        } else {
+            value = [orderInfo];
+        }
         res.cookie('cart', value, option);
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');
     }

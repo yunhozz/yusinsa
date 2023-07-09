@@ -154,7 +154,7 @@ export class OrdersService {
     }
 
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
-    async makeOrderFromCartItems(dto: OrderRequestDto): Promise<Order> {
+    async makeOrderFromCartItems(dto: OrderRequestDto): Promise<string> {
         const { cart, si, gu, dong, etc } = dto;
         const order = await this.orderRepository.findOneBy({
             code : cart[0].orderCode,
@@ -199,7 +199,7 @@ export class OrdersService {
         });
 
         await this.orderItemRepository.softDelete({ order : Equal(order.id) });
-        return order;
+        return order.code;
     }
 
     // TODO
