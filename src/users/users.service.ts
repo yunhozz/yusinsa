@@ -4,6 +4,7 @@ import {
     BadRequestException,
     ForbiddenException,
     HttpException,
+    HttpStatus,
     Injectable,
     NotFoundException,
     UnauthorizedException
@@ -23,6 +24,7 @@ import {TokenPayload} from "./dto/token.payload";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {RedisCustomService} from "./redis-custom.service";
+import {EntityNotFoundError} from "typeorm";
 
 const jwtConfig = config.get('jwt');
 
@@ -37,12 +39,11 @@ export class UsersService {
 
     async join(dto: CreateUserRequestDto): Promise<User> {
         const { email, password, name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
-        const found: User = await this.userRepository.findOneBy({ email });
+        const found = await this.userRepository.exist({ where : { email } });
 
         if (found) {
-            throw new BadRequestException(`중복되는 이메일이 존재합니다. 현재 입력: ${dto.email}`);
+            throw new BadRequestException(`중복되는 이메일이 존재합니다. Email : ${email}`);
         }
-
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(password, salt);
         const user: User = await this.userRepository.create({
@@ -61,11 +62,17 @@ export class UsersService {
 
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
-        const user: User = await this.userRepository.findOneBy({ email });
+        const user: User = await this.userRepository.findOneBy({ email })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 이메일에 대한 유저를 찾을 수 없습니다. Email : ${email}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
 
         if (user && await bcrypt.compare(password, user.password)) {
             return await this.generateJwtTokens(user.id, user.email, user.roles);
-
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
         }
@@ -158,11 +165,14 @@ export class UsersService {
     }
 
     private async findUserById(id: bigint): Promise<User> {
-        const user: User = await this.userRepository.findOneBy({ id });
-        if (!user) {
-            throw new NotFoundException(`해당 유저를 찾을 수 없습니다. id : ${id}`);
-        }
-        return user;
+        return await this.userRepository.findOneBy({ id })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`유저를 찾을 수 없습니다.`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
     }
 
     private async generateJwtTokens(sub: bigint, username: string, roles: Role[]): Promise<JwtTokenResponseDto> {
