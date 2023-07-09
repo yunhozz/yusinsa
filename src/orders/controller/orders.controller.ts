@@ -29,16 +29,6 @@ export class OrdersController {
     constructor(private readonly orderService: OrdersService) {}
 
     /**
-     * 주문 상세 내역 조회
-     * @param orderCode: string
-     */
-    @Get('/:code')
-    async getOrderDetails(@Param('code') orderCode: string): Promise<ApiResponse> {
-        const orderDetails = await this.orderService.findOrderDetails(orderCode);
-        return ApiResponse.ok(HttpStatus.OK, '주문 상세 내역 조회에 성공하였습니다.', orderDetails);
-    }
-
-    /**
      * 주문 리스트 조회
      * @param userId: bigint
      * @param status: OrderStatus
@@ -57,10 +47,20 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.OK, '주문 리스트 조회에 성공하였습니다.', orderPage);
     }
 
-    // TODO
     @Get('/cart')
     async getCartItemList(@GetUser() userId: bigint, @Req() req: Request): Promise<ApiResponse> {
-        return ApiResponse.ok(HttpStatus.OK, '장바구니 상품 목록 조회에 성공하였습니다.', null);
+        const cart = req?.cookies['cart'];
+        return ApiResponse.ok(HttpStatus.OK, '장바구니 상품 목록 조회에 성공하였습니다.', cart);
+    }
+
+    /**
+     * 주문 상세 내역 조회
+     * @param orderCode: string
+     */
+    @Get('/:code')
+    async getOrderDetails(@Param('code') orderCode: string): Promise<ApiResponse> {
+        const orderDetails = await this.orderService.findOrderDetails(orderCode);
+        return ApiResponse.ok(HttpStatus.OK, '주문 상세 내역 조회에 성공하였습니다.', orderDetails);
     }
 
     // TODO
@@ -94,7 +94,7 @@ export class OrdersController {
         const option = { path : '/', httpOnly : true };
 
         if (cart) {
-            cart.value.push(orderInfo);
+            cart.push(orderInfo);
             value = cart;
         } else value = [orderInfo];
         res.cookie('cart', value, option);
