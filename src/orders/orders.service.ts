@@ -1,5 +1,5 @@
 import {v1 as uuid} from 'uuid';
-import {BadRequestException, Injectable, Logger} from '@nestjs/common';
+import {BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {OrderRepository} from "./repository/order.repository";
 import {InjectRepository} from "@nestjs/typeorm";
 import {Order} from "./entity/order.entity";
@@ -9,7 +9,7 @@ import {OrderItem} from "./entity/order-item.entity";
 import {Item} from "./entity/item.entity";
 import {User} from "../users/user.entity";
 import {UserRepository} from "../users/user.repository";
-import {Brackets, Equal, IsNull} from "typeorm";
+import {Brackets, EntityNotFoundError, Equal, IsNull} from "typeorm";
 import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
@@ -65,7 +65,14 @@ export class OrdersService {
         const order = await this.orderRepository.createQueryBuilder('order')
             .select(['order.code', 'order.totalPrice', 'order.address', 'order.status', 'order.updatedAt'])
             .where('order.code = :orderCode', { orderCode })
-            .getOne();
+            .getOneOrFail()
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${orderCode}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
 
         const map = orderItems.map(oi => ({ orderItem : oi, itemId : oi.item.id }));
         const orderItemResponseDtoList: OrderItemResponseDto[] = [];
@@ -74,7 +81,14 @@ export class OrdersService {
             const item = await this.itemRepository.createQueryBuilder('item')
                 .select(['item.code', 'item.name', 'item.size', 'item.price'])
                 .where('item.id = :itemId', { itemId })
-                .getOne();
+                .getOneOrFail()
+                .catch(e => {
+                    if (e instanceof EntityNotFoundError) {
+                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${item.code}`);
+                    } else {
+                        throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                });
             const itemInfo = new ItemResponseDto(item);
             const orderItemResponseDto = new OrderItemResponseDto(orderItem, itemInfo);
             orderItemResponseDtoList.push(orderItemResponseDto);
