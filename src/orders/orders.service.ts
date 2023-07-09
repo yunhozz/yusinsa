@@ -74,7 +74,7 @@ export class OrdersService {
                 }
             });
 
-        const map = orderItems.map(oi => ({ orderItem : oi, itemId : oi.item.id }));
+        const map: OrderItemMap[] = orderItems.map(oi => ({ orderItem : oi, itemId : oi.item.id }));
         const orderItemResponseDtoList: OrderItemResponseDto[] = [];
 
         for (const { orderItem, itemId } of map) {
@@ -227,4 +227,9 @@ export class OrdersService {
         await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
         return orderCode;
     }
+}
+
+interface OrderItemMap {
+    orderItem: OrderItem;
+    itemId: bigint;
 }
