@@ -28,16 +28,33 @@ import {OrderStatus} from "../entity/order.enum";
 export class OrdersController {
     constructor(private readonly orderService: OrdersService) {}
 
+    /**
+     * 주문 상세 내역 조회
+     * @param orderCode: string
+     */
+    @Get('/:code')
+    async getOrderDetails(@Param('code') orderCode: string): Promise<ApiResponse> {
+        const orderDetails = await this.orderService.findOrderDetails(orderCode);
+        return ApiResponse.ok(HttpStatus.OK, '주문 상세 내역 조회에 성공하였습니다.', orderDetails);
+    }
+
+    /**
+     * 주문 리스트 조회
+     * @param userId: bigint
+     * @param status: OrderStatus
+     * @param pageNo: number
+     * @param pageSize: number
+     */
     @Get()
     async getOrderList(
         @GetUser() userId: bigint,
         @Query('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
-        @Query('pageNo', ParseIntPipe) pageNo?: number,
-        @Query('pageSize', ParseIntPipe) pageSize?: number
+        @Query('page', ParseIntPipe) pageNo?: number,
+        @Query('size', ParseIntPipe) pageSize?: number
     ): Promise<ApiResponse> {
         const pageRequest = new PageRequest(pageNo, pageSize);
         const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest, status);
-        return ApiResponse.ok(HttpStatus.OK, '주문내역 조회에 성공하였습니다.', orderPage);
+        return ApiResponse.ok(HttpStatus.OK, '주문 리스트 조회에 성공하였습니다.', orderPage);
     }
 
     // TODO
@@ -46,6 +63,7 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.OK, '장바구니 상품 목록 조회에 성공하였습니다.', null);
     }
 
+    // TODO
     @Post()
     async makeOrderByCart(
         @GetUser() userId: bigint,

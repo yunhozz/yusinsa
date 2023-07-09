@@ -14,6 +14,7 @@ import {Page} from "../common/pagination/page";
 import {PageRequest} from "../common/pagination/page-request";
 import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
 import {OrderStatus} from "./entity/order.enum";
+import {ItemResponseDto, OrderItemResponseDto, OrderResponseDto} from "./dto/order-response.dto";
 
 @Injectable()
 export class OrdersService {
@@ -34,7 +35,7 @@ export class OrdersService {
     async findOrdersByUserId(userId: bigint, page: PageRequest, status: OrderStatus): Promise<Page<Order>> {
         const [orders, count] = await this.orderRepository.createQueryBuilder('order')
             .select(['order.code', 'order.totalPrice', 'order.status'])
-            .innerJoin('order', 'user')
+            .innerJoin('order.user', 'user')
             .where('user.id = :userId', { userId })
             .andWhere(new Brackets(qb => {
                 const q = 'order.status = :status';
@@ -51,10 +52,34 @@ export class OrdersService {
         return new Page(page.pageSize, count, orders);
     }
 
-    // TODO
     // 주문 내역 상세 조회
-    async findOrderDetails(orderCode: string): Promise<any> {
+    async findOrderDetails(orderCode: string): Promise<OrderResponseDto> {
+        const orderItems = await this.orderItemRepository.createQueryBuilder('orderItem')
+            .select(['item.id', 'orderItem.id', 'orderItem.orderCount', 'orderItem.createdAt'])
+            .innerJoin('orderItem.order', 'order')
+            .innerJoin('orderItem.item', 'item')
+            .where('order.code = :orderCode', { orderCode })
+            .orderBy('orderItem.createdAt', 'ASC')
+            .getMany();
 
+        const order = await this.orderRepository.createQueryBuilder('order')
+            .select(['order.code', 'order.totalPrice', 'order.address', 'order.status', 'order.updatedAt'])
+            .where('order.code = :orderCode', { orderCode })
+            .getOne();
+
+        const map = orderItems.map(oi => ({ orderItem : oi, itemId : oi.item.id }));
+        const orderItemResponseDtoList: OrderItemResponseDto[] = [];
+
+        for (const { orderItem, itemId } of map) {
+            const item = await this.itemRepository.createQueryBuilder('item')
+                .select(['item.code', 'item.name', 'item.size', 'item.price'])
+                .where('item.id = :itemId', { itemId })
+                .getOne();
+            const itemInfo = new ItemResponseDto(item);
+            const orderItemResponseDto = new OrderItemResponseDto(orderItem, itemInfo);
+            orderItemResponseDtoList.push(orderItemResponseDto);
+        }
+        return new OrderResponseDto(order, orderItemResponseDtoList);
     }
 
     // TODO
