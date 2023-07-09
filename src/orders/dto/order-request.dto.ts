@@ -1,4 +1,5 @@
 import {IsNotEmpty, IsNumber, IsString, Min} from "class-validator";
+import {OmitType} from "@nestjs/mapped-types";
 
 export class OrderItemRequestDto {
     @IsString()
@@ -32,7 +33,17 @@ export class OrderRequestDto {
     @IsString()
     @IsNotEmpty()
     etc: string;
+
+    constructor(cart: CartItemRequestDto[], si: string, gu: string, dong: string, etc: string) {
+        this.cart = cart;
+        this.si = si;
+        this.gu = gu;
+        this.dong = dong;
+        this.etc = etc;
+    }
 }
+
+export class AddressRequestDto extends OmitType(OrderRequestDto, ['cart']) {}
 
 export class CartItemRequestDto {
     @IsString()
@@ -46,4 +57,10 @@ export class CartItemRequestDto {
     @IsNumber()
     @IsNotEmpty()
     count: number;
+
+    constructor(orderCode: string, itemCode: string, count: number) {
+        this.orderCode = orderCode;
+        this.itemCode = itemCode;
+        this.count = count;
+    }
 }
