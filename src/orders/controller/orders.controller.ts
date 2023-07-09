@@ -47,8 +47,12 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.OK, '주문 리스트 조회에 성공하였습니다.', orderPage);
     }
 
+    /**
+     * 장바구니 상품 목록 조회
+     * @param req: Request
+     */
     @Get('/cart')
-    async getCartItemList(@GetUser() userId: bigint, @Req() req: Request): Promise<ApiResponse> {
+    async getCartItemList(@Req() req: Request): Promise<ApiResponse> {
         const cart = req?.cookies['cart'];
         return ApiResponse.ok(HttpStatus.OK, '장바구니 상품 목록 조회에 성공하였습니다.', cart);
     }
@@ -78,6 +82,8 @@ export class OrdersController {
         }
         const orderRequestDto = new OrderRequestDto(cartItems, si, gu, dong, etc);
         const orderCode = await this.orderService.makeOrderFromCartItems(orderRequestDto);
+        res.clearCookie('cart', { path : '/', httpOnly : true });
+
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니의 상품들을 성공적으로 주문하였습니다.', orderCode);
     }
 
