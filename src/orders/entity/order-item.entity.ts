@@ -6,10 +6,10 @@ import {
     Entity,
     ManyToOne,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
-} from "typeorm";
-import {Order} from "./order.entity";
-import {Item} from "./item.entity";
+    UpdateDateColumn,
+} from 'typeorm';
+import { Order } from './order.entity';
+import { Item } from './item.entity';
 
 @Entity()
 export class OrderItem extends BaseEntity {
