@@ -183,10 +183,10 @@ export class OrdersService {
     }
 
     // 장바구니 단건 취소
-    async deleteOrderItemByCode(orderCode: string, itemCode: string): Promise<string> {
+    async deleteOrderItemByCodeAndCount(orderCode: string, itemCode: string, count: number): Promise<string> {
         const order = await this.findOrderByCode(orderCode);
         const item = await this.findItemByCode(itemCode);
-        await this.orderItemRepository.softDelete({ order : Equal(order.id), item : Equal(item.id) });
+        await this.orderItemRepository.softDelete({ order : Equal(order.id), item : Equal(item.id), orderCount : count });
 
         return item.code;
     }

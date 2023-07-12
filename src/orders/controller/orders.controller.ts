@@ -125,16 +125,18 @@ export class OrdersController {
      * 장바구니의 상품 단건 취소
      * @param dto: CartItemRequestDto
      * @param req: Request
+     * @param res: Response
      */
     @Patch('/cart')
-    async cancelItemOnCart(@Body(ValidationPipe) dto: CartItemRequestDto, @Req() req: Request): Promise<ApiResponse> {
+    async cancelItemOnCart(@Body(ValidationPipe) dto: CartItemRequestDto, @Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         const { orderCode, itemCode, count } = dto;
         const cart = req?.cookies['cart'];
 
         for (let i = 0; i < cart.length; i++) {
-            if (cart[i].order == orderCode && cart[i].item == itemCode) {
-                const code = await this.orderService.deleteOrderItemByCode(orderCode, itemCode);
-                delete cart[i];
+            if (cart[i].order == orderCode && cart[i].item == itemCode && cart[i].count == count) {
+                const code = await this.orderService.deleteOrderItemByCodeAndCount(orderCode, itemCode, count);
+                cart.splice(i, 1);
+                res.cookie('cart', cart, { path : '/', httpOnly : true });
                 return ApiResponse.ok(HttpStatus.NO_CONTENT, `장바구니의 해당 상품을 성공적으로 취소하였습니다. item code : ${code}`);
             }
         }
