@@ -178,7 +178,6 @@ export class OrdersService {
             status : OrderStatus.DONE
         });
 
-        await this.orderItemRepository.softDelete({ order : Equal(order.id) });
         return order.code;
     }
 
