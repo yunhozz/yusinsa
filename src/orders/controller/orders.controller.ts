@@ -67,6 +67,12 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.OK, '주문 상세 내역 조회에 성공하였습니다.', orderDetails);
     }
 
+    /**
+     * 장바구니의 상품 목록 주문
+     * @param dto: AddressRequestDto
+     * @param req: Request
+     * @param res: Response
+     */
     @Post()
     async makeOrderByCart(
         @Body(ValidationPipe) dto: AddressRequestDto,
@@ -87,6 +93,13 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니의 상품들을 성공적으로 주문하였습니다.', orderCode);
     }
 
+    /**
+     * 장바구니에 상품 추가
+     * @param userId: bigint
+     * @param dto: OrderItemRequestDto
+     * @param req: Request
+     * @param res: Response
+     */
     @Post('/cart')
     async addGoodsIntoCart(
         @GetUser() userId: bigint,
@@ -108,6 +121,11 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');
     }
 
+    /**
+     * 장바구니의 상품 단건 취소
+     * @param dto: CartItemRequestDto
+     * @param req: Request
+     */
     @Patch('/cart')
     async cancelItemOnCart(@Body(ValidationPipe) dto: CartItemRequestDto, @Req() req: Request): Promise<ApiResponse> {
         const { orderCode, itemCode, count } = dto;
@@ -120,6 +138,10 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.NO_CONTENT, '장바구니의 해당 상품을 성공적으로 취소하였습니다.');
     }
 
+    /**
+     * 주문 취소
+     * @param orderCode: string
+     */
     @Patch('/:code')
     async cancelOrder(@Param('code') orderCode: string): Promise<ApiResponse> {
         const code = await this.orderService.changeStatusCancelAndDeleteOrder(orderCode);
