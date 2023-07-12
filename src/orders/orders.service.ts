@@ -159,16 +159,9 @@ export class OrdersService {
         let resultPrice = 0;
 
         for (const c of cart) {
-            const item = await this.itemRepository.findOneBy({ code : c.itemCode })
-                .catch(e => {
-                    if (e instanceof EntityNotFoundError) {
-                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${c.itemCode}`);
-                    } else {
-                        throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
-                    }
-                });
-
+            const item = await this.findItemByCode(c.itemCode);
             const remainQuantity = item.stockQuantity - c.count;
+
             if (remainQuantity < 0) {
                 this.logger.error('상품 재고 부족!!');
                 throw new BadRequestException(`상품 재고 부족. 이름 : ${item.name}, 재고 : ${item.stockQuantity}, 주문 수량 : ${c.count}`);
@@ -200,15 +193,7 @@ export class OrdersService {
 
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
-        const order = await this.orderRepository.findOneBy({ code : orderCode })
-            .catch(e => {
-                if (e instanceof EntityNotFoundError) {
-                    throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${orderCode}`);
-                } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            });
-
+        const order = await this.findOrderByCode(orderCode);
         const orderItems = await this.orderItemRepository.find({
             relations : { order : true },
             where : { order : Equal(order.id) }
@@ -222,5 +207,27 @@ export class OrdersService {
         }
         await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
         return orderCode;
+    }
+
+    private async findOrderByCode(code: string): Promise<Order> {
+        return await this.orderRepository.findOneBy({ code })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${code}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
+    }
+
+    private async findItemByCode(code: string): Promise<Item> {
+        return await this.itemRepository.findOneBy({ code })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${code}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
     }
 }
