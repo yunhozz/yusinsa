@@ -189,6 +189,15 @@ export class OrdersService {
         return order.code;
     }
 
+    // 장바구니 단건 취소
+    async deleteOrderItemByCode(orderCode: string, itemCode: string): Promise<string> {
+        const order = await this.findOrderByCode(orderCode);
+        const item = await this.findItemByCode(itemCode);
+        await this.orderItemRepository.softDelete({ order : Equal(order.id), item : Equal(item.id) });
+
+        return item.code;
+    }
+
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
         const order = await this.orderRepository.findOneBy({ code : orderCode })

@@ -132,10 +132,13 @@ export class OrdersController {
         const cart = req?.cookies['cart'];
 
         for (let i = 0; i < cart.length; i++) {
-            if (cart[i].order == orderCode && cart[i].item == itemCode)
+            if (cart[i].order == orderCode && cart[i].item == itemCode) {
+                const code = await this.orderService.deleteOrderItemByCode(orderCode, itemCode);
                 delete cart[i];
+                return ApiResponse.ok(HttpStatus.NO_CONTENT, `장바구니의 해당 상품을 성공적으로 취소하였습니다. item code : ${code}`);
+            }
         }
-        return ApiResponse.ok(HttpStatus.NO_CONTENT, '장바구니의 해당 상품을 성공적으로 취소하였습니다.');
+        return ApiResponse.fail(HttpStatus.BAD_REQUEST, `장바구니에 해당 상품이 존재하지 않습니다. item code : ${itemCode}`);
     }
 
     /**
