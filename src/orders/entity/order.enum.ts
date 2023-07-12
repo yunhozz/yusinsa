@@ -44,11 +44,3 @@ export enum OrderStatus {
     COMPLETE = 'complete',
     CANCEL = 'cancel'
 }
-
-// Const Assertions
-export const CATEGORIES = {
-    TOP : TopCategory,
-    OUTER : OuterCategory,
-    PANTS : PantsCategory,
-    SHOES : ShoesCategory
-} as const;

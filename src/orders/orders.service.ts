@@ -1,20 +1,21 @@
-import {v1 as uuid} from 'uuid';
-import {BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException} from '@nestjs/common';
-import {OrderRepository} from "./repository/order.repository";
-import {InjectRepository} from "@nestjs/typeorm";
-import {Order} from "./entity/order.entity";
-import {OrderItemRepository} from "./repository/order-item.repository";
-import {ItemRepository} from "./repository/item.repository";
-import {OrderItem} from "./entity/order-item.entity";
-import {Item} from "./entity/item.entity";
-import {User} from "../users/user.entity";
-import {UserRepository} from "../users/user.repository";
-import {Brackets, EntityNotFoundError, Equal, IsNull} from "typeorm";
-import {Page} from "../common/pagination/page";
-import {PageRequest} from "../common/pagination/page-request";
-import {OrderItemRequestDto, OrderRequestDto} from "./dto/order-request.dto";
-import {OrderStatus} from "./entity/order.enum";
-import {CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto} from "./dto/order-response.dto";
+import { v1 as uuid } from 'uuid';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { OrderRepository } from './repository/order.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Order } from './entity/order.entity';
+import { OrderItemRepository } from './repository/order-item.repository';
+import { ItemRepository } from './repository/item.repository';
+import { OrderItem } from './entity/order-item.entity';
+import { Item } from './entity/item.entity';
+import { User } from '../users/user.entity';
+import { UserRepository } from '../users/user.repository';
+import { Brackets, EntityNotFoundError, Equal, IsNull } from 'typeorm';
+import { Page } from '../common/pagination/page';
+import { PageRequest } from '../common/pagination/page-request';
+import { OrderItemRequestDto, OrderRequestDto } from './dto/order-request.dto';
+import { OrderStatus } from './entity/order.enum';
+import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from './dto/order-response.dto';
+import { OrderItemMap } from '../common/type/custom-type';
 
 @Injectable()
 export class OrdersService {
@@ -200,7 +201,7 @@ export class OrdersService {
     // TODO
     // 장바구니 내 아이템 단건 취소
     async deleteCartItem(orderCode: string, itemCode: string): Promise<any> {
-
+        return null;
     }
 
     // 주문 일괄 취소
@@ -227,9 +228,4 @@ export class OrdersService {
         await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
         return orderCode;
     }
-}
-
-interface OrderItemMap {
-    orderItem: OrderItem;
-    itemId: bigint;
 }

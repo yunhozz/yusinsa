@@ -7,12 +7,12 @@ import {
     ManyToOne,
     OneToMany,
     PrimaryGeneratedColumn,
-    UpdateDateColumn
-} from "typeorm";
-import {OrderItem} from "./order-item.entity";
-import {Address} from "../../common/element/address.interface";
-import {User} from "../../users/user.entity";
-import {OrderStatus} from "./order.enum";
+    UpdateDateColumn,
+} from 'typeorm';
+import { OrderItem } from './order-item.entity';
+import { Address } from '../../common/type/custom-type';
+import { User } from '../../users/user.entity';
+import { OrderStatus } from './order.enum';
 
 @Entity()
 export class Order extends BaseEntity {

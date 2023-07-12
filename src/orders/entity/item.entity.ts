@@ -8,10 +8,11 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
     TableInheritance,
-    UpdateDateColumn
-} from "typeorm";
-import {OrderItem} from "./order-item.entity";
-import {CATEGORIES, Gender} from "./order.enum";
+    UpdateDateColumn,
+} from 'typeorm';
+import { OrderItem } from './order-item.entity';
+import { Gender } from './order.enum';
+import { CATEGORIES } from '../../common/type/custom-type';
 
 @Entity()
 @TableInheritance({ column : {

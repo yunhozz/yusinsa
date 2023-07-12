@@ -9,7 +9,7 @@ import {
     UpdateDateColumn
 } from "typeorm";
 import {Order} from "../orders/entity/order.entity";
-import {Address} from "../common/element/address.interface";
+import {Address} from "../common/type/custom-type";
 
 export enum Gender {
     MALE = 'male',
