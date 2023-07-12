@@ -101,7 +101,7 @@ export class OrdersService {
     async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<CartResponseDto> {
         const { itemCode, size, count } = dto;
         const user = await this.userRepository.findOneBy({ id : userId });
-        const item = await this.itemRepository.findOneBy({ code : itemCode, size })
+        const item = await this.itemRepository.findOneByOrFail({ code : itemCode, size })
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${itemCode}`);
@@ -143,7 +143,7 @@ export class OrdersService {
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
     async makeOrderFromCartItems(dto: OrderRequestDto): Promise<string> {
         const { cart, si, gu, dong, etc } = dto;
-        const order = await this.orderRepository.findOneBy({
+        const order = await this.orderRepository.findOneByOrFail({
             code : cart[0].orderCode,
             status : OrderStatus.READY
         })
@@ -210,7 +210,7 @@ export class OrdersService {
     }
 
     private async findOrderByCode(code: string): Promise<Order> {
-        return await this.orderRepository.findOneBy({ code })
+        return await this.orderRepository.findOneByOrFail({ code })
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${code}`);
@@ -221,7 +221,7 @@ export class OrdersService {
     }
 
     private async findItemByCode(code: string): Promise<Item> {
-        return await this.itemRepository.findOneBy({ code })
+        return await this.itemRepository.findOneByOrFail({ code })
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${code}`);

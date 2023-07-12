@@ -1,5 +1,5 @@
 import * as config from 'config';
-import * as bcrypt from "bcrypt";
+import * as bcrypt from 'bcrypt';
 import {
     BadRequestException,
     ForbiddenException,
@@ -7,24 +7,24 @@ import {
     HttpStatus,
     Injectable,
     NotFoundException,
-    UnauthorizedException
+    UnauthorizedException,
 } from '@nestjs/common';
-import {UserRepository} from "./user.repository";
-import {Role, User} from "./user.entity";
-import {InjectRepository} from "@nestjs/typeorm";
-import {JwtService} from "@nestjs/jwt";
+import { UserRepository } from './user.repository';
+import { Role, User } from './user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
-    UpdateProfileRequestDto
-} from "./dto/user-request.dto";
-import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user-response.dto";
-import {TokenPayload} from "./dto/token.payload";
-import {Page} from "../common/pagination/page";
-import {PageRequest} from "../common/pagination/page-request";
-import {RedisCustomService} from "./redis-custom.service";
-import {EntityNotFoundError} from "typeorm";
+    UpdateProfileRequestDto,
+} from './dto/user-request.dto';
+import { JwtTokenResponseDto, UserProfileResponseDto } from './dto/user-response.dto';
+import { TokenPayload } from './dto/token.payload';
+import { Page } from '../common/pagination/page';
+import { PageRequest } from '../common/pagination/page-request';
+import { RedisCustomService } from './redis-custom.service';
+import { EntityNotFoundError } from 'typeorm';
 
 const jwtConfig = config.get('jwt');
 
@@ -62,7 +62,7 @@ export class UsersService {
 
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
-        const user: User = await this.userRepository.findOneBy({ email })
+        const user: User = await this.userRepository.findOneByOrFail({ email })
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 이메일에 대한 유저를 찾을 수 없습니다. Email : ${email}`);
@@ -165,7 +165,7 @@ export class UsersService {
     }
 
     private async findUserById(id: bigint): Promise<User> {
-        return await this.userRepository.findOneBy({ id })
+        return await this.userRepository.findOneByOrFail({ id })
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`유저를 찾을 수 없습니다.`);
