@@ -1,5 +1,5 @@
-import {IsNotEmpty, IsNumber, IsString, Min} from "class-validator";
-import {OmitType} from "@nestjs/mapped-types";
+import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { OmitType } from '@nestjs/mapped-types';
 
 export class OrderItemRequestDto {
     @IsString()

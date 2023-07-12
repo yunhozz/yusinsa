@@ -12,16 +12,16 @@ import {
     Req,
     Res,
     UseGuards,
-    ValidationPipe
+    ValidationPipe,
 } from '@nestjs/common';
-import {OrdersService} from "../orders.service";
-import {AuthGuard} from "@nestjs/passport";
-import {ApiResponse} from "../../common/response/api-response";
-import {GetUser} from "../../common/decorator/get-user.decorator";
-import {Request, Response} from "express";
-import {PageRequest} from "../../common/pagination/page-request";
-import {AddressRequestDto, CartItemRequestDto, OrderItemRequestDto, OrderRequestDto} from "../dto/order-request.dto";
-import {OrderStatus} from "../entity/order.enum";
+import { OrdersService } from '../orders.service';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiResponse } from '../../common/response/api-response';
+import { GetUser } from '../../common/decorator/get-user.decorator';
+import { Request, Response } from 'express';
+import { PageRequest } from '../../common/pagination/page-request';
+import { AddressRequestDto, CartItemRequestDto, OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
+import { OrderStatus } from '../entity/order.enum';
 
 @Controller('/api/orders')
 @UseGuards(AuthGuard())
@@ -108,16 +108,21 @@ export class OrdersController {
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');
     }
 
-    // TODO
+    @Patch('/cart')
+    async cancelItemOnCart(@Body(ValidationPipe) dto: CartItemRequestDto, @Req() req: Request): Promise<ApiResponse> {
+        const { orderCode, itemCode, count } = dto;
+        const cart = req?.cookies['cart'];
+
+        for (let i = 0; i < cart.length; i++) {
+            if (cart[i].order == orderCode && cart[i].item == itemCode)
+                delete cart[i];
+        }
+        return ApiResponse.ok(HttpStatus.NO_CONTENT, '장바구니의 해당 상품을 성공적으로 취소하였습니다.');
+    }
+
     @Patch('/:code')
     async cancelOrder(@Param('code') orderCode: string): Promise<ApiResponse> {
         const code = await this.orderService.changeStatusCancelAndDeleteOrder(orderCode);
         return ApiResponse.ok(HttpStatus.NO_CONTENT, `해당 주문건을 성공적으로 취소하였습니다. order code : ${code}`);
-    }
-
-    // TODO
-    @Patch('/cart')
-    async cancelItemOnCart(@Query('item') itemCode: string): Promise<ApiResponse> {
-        return ApiResponse.ok(HttpStatus.NO_CONTENT, '장바구니의 해당 상품을 성공적으로 취소하였습니다.');
     }
 }

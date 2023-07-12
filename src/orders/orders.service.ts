@@ -9,7 +9,7 @@ import { OrderItem } from './entity/order-item.entity';
 import { Item } from './entity/item.entity';
 import { User } from '../users/user.entity';
 import { UserRepository } from '../users/user.repository';
-import { Brackets, EntityNotFoundError, Equal, IsNull } from 'typeorm';
+import { Brackets, EntityNotFoundError, Equal } from 'typeorm';
 import { Page } from '../common/pagination/page';
 import { PageRequest } from '../common/pagination/page-request';
 import { OrderItemRequestDto, OrderRequestDto } from './dto/order-request.dto';
@@ -95,15 +95,6 @@ export class OrdersService {
             orderItemResponseDtoList.push(orderItemResponseDto);
         }
         return new OrderResponseDto(order, orderItemResponseDtoList);
-    }
-
-    // TODO
-    // 장바구니 내역 조회
-    async findCartOrdersByUserId(userId: bigint): Promise<any> {
-        await this.orderItemRepository.find({
-            relations : { order : true, item : true },
-            where : { deletedAt : IsNull() }
-        });
     }
 
     // 장바구니에 상품 추가
@@ -198,12 +189,6 @@ export class OrdersService {
         return order.code;
     }
 
-    // TODO
-    // 장바구니 내 아이템 단건 취소
-    async deleteCartItem(orderCode: string, itemCode: string): Promise<any> {
-        return null;
-    }
-
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
         const order = await this.orderRepository.findOneBy({ code : orderCode })
@@ -214,6 +199,7 @@ export class OrdersService {
                     throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
+
         const orderItems = await this.orderItemRepository.find({
             relations : { order : true },
             where : { order : Equal(order.id) }
