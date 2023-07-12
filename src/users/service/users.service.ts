@@ -9,8 +9,8 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { UserRepository } from './user.repository';
-import { Role, User } from './user.entity';
+import { UserRepository } from '../user.repository';
+import { Role, User } from '../user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -18,11 +18,11 @@ import {
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto,
-} from './dto/user-request.dto';
-import { JwtTokenResponseDto, UserProfileResponseDto } from './dto/user-response.dto';
-import { TokenPayload } from './dto/token.payload';
-import { Page } from '../common/pagination/page';
-import { PageRequest } from '../common/pagination/page-request';
+} from '../dto/user-request.dto';
+import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
+import { TokenPayload } from '../dto/token.payload';
+import { Page } from '../../common/pagination/page';
+import { PageRequest } from '../../common/pagination/page-request';
 import { RedisCustomService } from './redis-custom.service';
 import { EntityNotFoundError } from 'typeorm';
 

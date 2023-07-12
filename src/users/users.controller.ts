@@ -11,24 +11,24 @@ import {
     Req,
     Res,
     UseGuards,
-    ValidationPipe
+    ValidationPipe,
 } from '@nestjs/common';
-import {UsersService} from "./users.service";
-import {JwtTokenResponseDto, UserProfileResponseDto} from "./dto/user-response.dto";
+import { UsersService } from './service/users.service';
+import { JwtTokenResponseDto, UserProfileResponseDto } from './dto/user-response.dto';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
-    UpdateProfileRequestDto
-} from "./dto/user-request.dto";
-import {Role, User} from "./user.entity";
-import {GetUser} from "../common/decorator/get-user.decorator";
-import {ApiResponse} from "../common/response/api-response";
-import {Request, Response} from "express";
-import {Page} from "../common/pagination/page";
-import {PageRequest} from "../common/pagination/page-request";
-import {AuthGuard} from "@nestjs/passport";
-import {Roles} from "../common/decorator/roles.decorator";
+    UpdateProfileRequestDto,
+} from './dto/user-request.dto';
+import { Role, User } from './user.entity';
+import { GetUser } from '../common/decorator/get-user.decorator';
+import { ApiResponse } from '../common/response/api-response';
+import { Request, Response } from 'express';
+import { Page } from '../common/pagination/page';
+import { PageRequest } from '../common/pagination/page-request';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../common/decorator/roles.decorator';
 
 @Controller('/api/users')
 export class UsersController {
