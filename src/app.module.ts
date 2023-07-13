@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/type-orm.config';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './common/decorator/roles.guard';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { OrdersModule } from './orders/orders.module';
 
@@ -19,7 +17,6 @@ import { OrdersModule } from './orders/orders.module';
         }),
         UsersModule,
         OrdersModule
-    ],
-    providers : [{ provide : APP_GUARD, useClass : RolesGuard }]
+    ]
 })
 export class AppModule {}
