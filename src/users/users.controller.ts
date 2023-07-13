@@ -30,6 +30,8 @@ import { Page } from '../common/pagination/page';
 import { PageRequest } from '../common/pagination/page-request';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/decorator/roles.decorator';
+import { Cookie } from '../common/decorator/cookie.decorator';
+import { CartResponseDto } from '../orders/dto/order-response.dto';
 
 @Controller('/api/users')
 export class UsersController {
@@ -139,23 +141,27 @@ export class UsersController {
     /**
      * 로그아웃
      * @param id: bigint
-     * @param req: Request
+     * @param token: string
+     * @param cart: CartResponseDto[]
      * @param res: Response
      */
     @Post('/logout')
     @UseGuards(AuthGuard())
     @HttpCode(HttpStatus.CREATED)
-    async logout(@GetUser() id: bigint, @Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
-        try {
-            const token = req?.cookies?.token;
-            if (token) {
-                res.clearCookie('token', { path : '/' })
-            }
-            await this.userService.logout(id);
-            return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');
-        } catch (e) {
-            return ApiResponse.fail(e.status, e.message);
+    async logout(
+        @GetUser() id: bigint,
+        @Cookie('token') token: string,
+        @Cookie('cart') cart: CartResponseDto[],
+        @Res({ passthrough : true }) res: Response
+    ): Promise<ApiResponse> {
+        if (token) {
+            res.clearCookie('token', { path : '/' });
         }
+        if (cart) {
+            res.clearCookie('cart', { path : '/' });
+        }
+        await this.userService.logout(id);
+        return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');
     }
 
     /**
