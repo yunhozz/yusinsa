@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    HttpCode,
     HttpStatus,
     Param,
     ParseIntPipe,
@@ -40,6 +41,7 @@ export class UsersController {
      */
     @Get('/me')
     @UseGuards(AuthGuard())
+    @HttpCode(HttpStatus.OK)
     async getMyInfo(@GetUser() id: bigint): Promise<ApiResponse> {
         const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
         return ApiResponse.ok(HttpStatus.OK, '내 정보 조회에 성공하였습니다.', dto);
@@ -54,6 +56,7 @@ export class UsersController {
     @Get('/q')
     @UseGuards(AuthGuard())
     @Roles(Role.ADMIN)
+    @HttpCode(HttpStatus.OK)
     async getAllUsersPage(@Query('pageNo') pageNo?: number, @Query('pageSize') pageSize?: number): Promise<ApiResponse> {
         const page: PageRequest = new PageRequest(pageNo, pageSize);
         const users: Page<User> = await this.userService.findAllUsersPage(page);
@@ -66,6 +69,7 @@ export class UsersController {
      * @param res: Response
      */
     @Get('/reissue')
+    @HttpCode(HttpStatus.OK)
     async tokenReissue(@Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         try {
             const token = req?.headers?.authorization;
@@ -81,9 +85,7 @@ export class UsersController {
                 });
                 return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 재발행 되었습니다.');
             }
-
             return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 아직 유효합니다.');
-
         } catch (e) {
             return ApiResponse.fail(e.status, e.message);
         }
@@ -95,6 +97,7 @@ export class UsersController {
      */
     @Get('/:id')
     @UseGuards(AuthGuard())
+    @HttpCode(HttpStatus.OK)
     async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
         const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
         return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', dto);
@@ -105,6 +108,7 @@ export class UsersController {
      * @param dto: CreateUserRequestDto
      */
     @Post('/join')
+    @HttpCode(HttpStatus.CREATED)
     async join(@Body(ValidationPipe) dto: CreateUserRequestDto): Promise<ApiResponse> {
         const user: User = await this.userService.join(dto);
         return ApiResponse.ok(HttpStatus.CREATED, '회원가입에 성공하였습니다.', {
@@ -119,6 +123,7 @@ export class UsersController {
      * @param res: Response
      */
     @Post('/login')
+    @HttpCode(HttpStatus.CREATED)
     async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         const jwtTokenResponseDto: JwtTokenResponseDto = await this.userService.login(dto);
         // Send JWT access token to front-end with cookie
@@ -128,7 +133,6 @@ export class UsersController {
             secure : true,
             maxAge : 180000 // 3 min
         });
-
         return ApiResponse.ok(HttpStatus.CREATED, '로그인에 성공하였습니다.');
     }
 
@@ -140,16 +144,15 @@ export class UsersController {
      */
     @Post('/logout')
     @UseGuards(AuthGuard())
+    @HttpCode(HttpStatus.CREATED)
     async logout(@GetUser() id: bigint, @Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         try {
             const token = req?.cookies?.token;
             if (token) {
                 res.clearCookie('token', { path : '/' })
             }
-
             await this.userService.logout(id);
             return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');
-
         } catch (e) {
             return ApiResponse.fail(e.status, e.message);
         }
@@ -162,6 +165,7 @@ export class UsersController {
      */
     @Patch('/password')
     @UseGuards(AuthGuard())
+    @HttpCode(HttpStatus.CREATED)
     async updatePassword(@GetUser() id: bigint, @Body(ValidationPipe) dto: UpdatePasswordRequestDto): Promise<ApiResponse> {
         await this.userService.updatePassword(id, dto);
         return ApiResponse.ok(HttpStatus.CREATED, '패스워드 업데이트를 성공적으로 완료했습니다.');
@@ -174,6 +178,7 @@ export class UsersController {
      */
     @Patch('/profile')
     @UseGuards(AuthGuard())
+    @HttpCode(HttpStatus.CREATED)
     async updateProfile(@GetUser() id: bigint, @Body(ValidationPipe) dto: UpdateProfileRequestDto): Promise<ApiResponse> {
         await this.userService.updateProfileById(id, dto);
         return ApiResponse.ok(HttpStatus.CREATED, '프로필 업데이트를 성공적으로 완료했습니다.');
@@ -186,6 +191,7 @@ export class UsersController {
      */
     @Patch('/delete')
     @UseGuards(AuthGuard())
+    @HttpCode(HttpStatus.CREATED)
     async withdraw(@GetUser() id: bigint, @Res() res: Response): Promise<ApiResponse> {
         await this.userService.deleteUserById(id);
         res.removeHeader('Authentication');

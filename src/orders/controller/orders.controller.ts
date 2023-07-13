@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    HttpCode,
     HttpStatus,
     Param,
     ParseEnumPipe,
@@ -36,6 +37,7 @@ export class OrdersController {
      * @param pageSize: number
      */
     @Get()
+    @HttpCode(HttpStatus.OK)
     async getOrderList(
         @GetUser() userId: bigint,
         @Query('status', new ParseEnumPipe(OrderStatus)) status: OrderStatus,
@@ -52,6 +54,7 @@ export class OrdersController {
      * @param req: Request
      */
     @Get('/cart')
+    @HttpCode(HttpStatus.OK)
     async getCartItemList(@Req() req: Request): Promise<ApiResponse> {
         const cart = req?.cookies['cart'];
         return ApiResponse.ok(HttpStatus.OK, '장바구니 상품 목록 조회에 성공하였습니다.', cart);
@@ -62,6 +65,7 @@ export class OrdersController {
      * @param orderCode: string
      */
     @Get('/:code')
+    @HttpCode(HttpStatus.OK)
     async getOrderDetails(@Param('code') orderCode: string): Promise<ApiResponse> {
         const orderDetails = await this.orderService.findOrderDetails(orderCode);
         return ApiResponse.ok(HttpStatus.OK, '주문 상세 내역 조회에 성공하였습니다.', orderDetails);
@@ -74,6 +78,7 @@ export class OrdersController {
      * @param res: Response
      */
     @Post()
+    @HttpCode(HttpStatus.CREATED)
     async makeOrderByCart(
         @Body(ValidationPipe) dto: AddressRequestDto,
         @Req() req: Request, @Res({ passthrough : true }) res: Response
@@ -101,6 +106,7 @@ export class OrdersController {
      * @param res: Response
      */
     @Post('/cart')
+    @HttpCode(HttpStatus.CREATED)
     async addGoodsIntoCart(
         @GetUser() userId: bigint,
         @Body(ValidationPipe) dto: OrderItemRequestDto,
@@ -128,6 +134,7 @@ export class OrdersController {
      * @param res: Response
      */
     @Patch('/cart')
+    @HttpCode(HttpStatus.CREATED)
     async cancelItemOnCart(@Body(ValidationPipe) dto: CartItemRequestDto, @Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         const { orderCode, itemCode, count } = dto;
         const cart = req?.cookies['cart'];
@@ -148,6 +155,7 @@ export class OrdersController {
      * @param orderCode: string
      */
     @Patch('/:code')
+    @HttpCode(HttpStatus.CREATED)
     async cancelOrder(@Param('code') orderCode: string): Promise<ApiResponse> {
         const code = await this.orderService.changeStatusCancelAndDeleteOrder(orderCode);
         return ApiResponse.ok(HttpStatus.NO_CONTENT, `해당 주문건을 성공적으로 취소하였습니다. order code : ${code}`);
