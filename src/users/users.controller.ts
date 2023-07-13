@@ -32,6 +32,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/decorator/roles.decorator';
 import { Cookie } from '../common/decorator/cookie.decorator';
 import { CartResponseDto } from '../orders/dto/order-response.dto';
+import { RolesGuard } from '../common/decorator/roles.guard';
 
 @Controller('/api/users')
 export class UsersController {
@@ -54,12 +55,11 @@ export class UsersController {
      * @param pageNo: number
      * @param pageSize: number
      */
-    // TODO: @Roles 데코레이터 관련 guard 설정
     @Get('/q')
-    @UseGuards(AuthGuard())
+    @UseGuards(AuthGuard(), RolesGuard)
     @Roles(Role.ADMIN)
     @HttpCode(HttpStatus.OK)
-    async getAllUsersPage(@Query('pageNo') pageNo?: number, @Query('pageSize') pageSize?: number): Promise<ApiResponse> {
+    async getAllUsersPage(@Query('page') pageNo?: number, @Query('size') pageSize?: number): Promise<ApiResponse> {
         const page: PageRequest = new PageRequest(pageNo, pageSize);
         const users: Page<User> = await this.userService.findAllUsersPage(page);
         return ApiResponse.ok(HttpStatus.OK, '유저 리스트 조회에 성공하였습니다.', users);
