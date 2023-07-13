@@ -1,4 +1,4 @@
-import {Role} from "../user.entity";
+import { Role } from '../../users/user.entity';
 
 export interface TokenPayload {
     sub: bigint,
