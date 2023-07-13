@@ -9,7 +9,7 @@ import { OrderItem } from './entity/order-item.entity';
 import { Item } from './entity/item.entity';
 import { User } from '../users/user.entity';
 import { UserRepository } from '../users/user.repository';
-import { Brackets, EntityNotFoundError, Equal } from 'typeorm';
+import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
 import { Page } from '../common/pagination/page';
 import { PageRequest } from '../common/pagination/page-request';
 import { OrderItemRequestDto, OrderRequestDto } from './dto/order-request.dto';
@@ -146,14 +146,13 @@ export class OrdersService {
         const order = await this.orderRepository.findOneByOrFail({
             code : cart[0].orderCode,
             status : OrderStatus.READY
-        })
-            .catch(e => {
-                if (e instanceof EntityNotFoundError) {
-                    throw new NotFoundException(`장바구니가 비어있거나 해당 주문 건이 이미 진행되었습니다.`);
-                } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            });
+        }).catch(e => {
+            if (e instanceof EntityNotFoundError) {
+                throw new NotFoundException(`장바구니가 비어있거나 해당 주문 건이 이미 진행되었습니다.`);
+            } else {
+                throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        });
 
         const quantities = new Map<bigint, number>();
         let resultPrice = 0;
@@ -177,7 +176,6 @@ export class OrdersService {
             address : { si, gu, dong, etc },
             status : OrderStatus.DONE
         });
-
         return order.code;
     }
 
@@ -191,7 +189,17 @@ export class OrdersService {
 
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
-        const order = await this.findOrderByCode(orderCode);
+        const order = await this.orderRepository.findOneByOrFail({
+            code : orderCode,
+            status : Not(OrderStatus.COMPLETE)
+        }).catch(e => {
+            if (e instanceof EntityNotFoundError) {
+                throw new NotFoundException(`해당 주문건이 이미 진행 중입니다. Order Code : ${orderCode}`);
+            } else {
+                throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        });
+
         const orderItems = await this.orderItemRepository.find({
             relations : { order : true },
             where : { order : Equal(order.id) }
@@ -204,7 +212,7 @@ export class OrdersService {
             await this.orderItemRepository.softDelete({ id : orderItem.id });
         }
         await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
-        return orderCode;
+        return order.code;
     }
 
     private async findOrderByCode(code: string): Promise<Order> {
