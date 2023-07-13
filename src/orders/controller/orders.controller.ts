@@ -46,6 +46,10 @@ export class OrdersController {
     ): Promise<ApiResponse> {
         const pageRequest = new PageRequest(pageNo, pageSize);
         const orderPage = await this.orderService.findOrdersByUserId(userId, pageRequest, status);
+
+        if (orderPage.items.length == 0) {
+            return ApiResponse.ok(HttpStatus.OK, '주문 내역이 존재하지 않습니다.');
+        }
         return ApiResponse.ok(HttpStatus.OK, '주문 리스트 조회에 성공하였습니다.', orderPage);
     }
 
@@ -57,6 +61,9 @@ export class OrdersController {
     @HttpCode(HttpStatus.OK)
     async getCartItemList(@Req() req: Request): Promise<ApiResponse> {
         const cart = req?.cookies['cart'];
+        if (cart.length == 0) {
+            return ApiResponse.ok(HttpStatus.OK, '장바구니가 비어있습니다.');
+        }
         return ApiResponse.ok(HttpStatus.OK, '장바구니 상품 목록 조회에 성공하였습니다.', cart);
     }
 
@@ -94,7 +101,6 @@ export class OrdersController {
         const orderRequestDto = new OrderRequestDto(cartItems, si, gu, dong, etc);
         const orderCode = await this.orderService.makeOrderFromCartItems(orderRequestDto);
         res.clearCookie('cart', { path : '/', httpOnly : true });
-
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니의 상품들을 성공적으로 주문하였습니다.', orderCode);
     }
 
@@ -134,7 +140,7 @@ export class OrdersController {
      * @param res: Response
      */
     @Patch('/cart')
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.NO_CONTENT)
     async cancelItemOnCart(@Body(ValidationPipe) dto: CartItemRequestDto, @Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         const { orderCode, itemCode, count } = dto;
         const cart = req?.cookies['cart'];
@@ -155,7 +161,7 @@ export class OrdersController {
      * @param orderCode: string
      */
     @Patch('/:code')
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.NO_CONTENT)
     async cancelOrder(@Param('code') orderCode: string): Promise<ApiResponse> {
         const code = await this.orderService.changeStatusCancelAndDeleteOrder(orderCode);
         return ApiResponse.ok(HttpStatus.NO_CONTENT, `해당 주문건을 성공적으로 취소하였습니다. order code : ${code}`);

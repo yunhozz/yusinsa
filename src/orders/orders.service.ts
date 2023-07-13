@@ -39,12 +39,11 @@ export class OrdersService {
             .innerJoin('order.user', 'user')
             .where('user.id = :userId', { userId })
             .andWhere(new Brackets(qb => {
-                const q = 'order.status = :status';
                 if (status != OrderStatus.WHOLE) {
-                    qb.where(q, { status });
+                    qb.where('order.status = :status', { status });
                 }
+                qb.andWhere('order.status != :status', { status : OrderStatus.READY });
             }))
-            .withDeleted()
             .offset(page.getOffset())
             .limit(page.getLimit())
             .orderBy('order.id', 'DESC')
@@ -90,6 +89,7 @@ export class OrdersService {
                         throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
                 });
+
             const itemInfo = new ItemResponseDto(item);
             const orderItemResponseDto = new OrderItemResponseDto(orderItem, itemInfo);
             orderItemResponseDtoList.push(orderItemResponseDto);
@@ -186,7 +186,6 @@ export class OrdersService {
         const order = await this.findOrderByCode(orderCode);
         const item = await this.findItemByCode(itemCode);
         await this.orderItemRepository.softDelete({ order : Equal(order.id), item : Equal(item.id), orderCount : count });
-
         return item.code;
     }
 
