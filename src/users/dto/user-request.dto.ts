@@ -7,10 +7,10 @@ import {
     IsString,
     Length,
     Matches,
-    MaxLength
-} from "class-validator";
-import {PartialType, PickType} from "@nestjs/mapped-types";
-import {Gender} from "../user.entity";
+    MaxLength,
+} from 'class-validator';
+import { PartialType, PickType } from '@nestjs/mapped-types';
+import { Gender } from '../user.entity';
 
 export class CreateUserRequestDto {
 

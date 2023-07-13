@@ -1,4 +1,4 @@
-import {Gender, User} from "../user.entity";
+import { Gender, User } from '../user.entity';
 
 export class UserProfileResponseDto {
 

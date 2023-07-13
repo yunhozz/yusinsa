@@ -20,7 +20,7 @@ import {
     UpdateProfileRequestDto,
 } from '../dto/user-request.dto';
 import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
-import { TokenPayload } from '../dto/token.payload';
+import { TokenPayload } from '../../common/type/token-payload';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
 import { RedisCustomService } from './redis-custom.service';

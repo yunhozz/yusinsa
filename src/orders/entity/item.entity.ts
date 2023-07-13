@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { Gender } from './order.enum';
-import { CATEGORIES } from '../../common/type/custom-type';
+import { CATEGORIES } from '../../common/type/categories.type';
 
 @Entity()
 @TableInheritance({ column : {

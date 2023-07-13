@@ -1,8 +1,8 @@
-import { Address } from '../../common/type/custom-type';
 import { OrderStatus } from '../entity/order.enum';
 import { Order } from '../entity/order.entity';
 import { OrderItem } from '../entity/order-item.entity';
 import { Item } from '../entity/item.entity';
+import { Address } from '../../common/type/address.type';
 
 export class OrderResponseDto {
     code: string;

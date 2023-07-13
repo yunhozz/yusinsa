@@ -15,7 +15,7 @@ import { PageRequest } from '../common/pagination/page-request';
 import { OrderItemRequestDto, OrderRequestDto } from './dto/order-request.dto';
 import { OrderStatus } from './entity/order.enum';
 import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from './dto/order-response.dto';
-import { OrderItemMap } from '../common/type/custom-type';
+import { OrderItemMap } from '../common/type/order-item-map.type';
 
 @Injectable()
 export class OrdersService {
