@@ -1,21 +1,21 @@
 import { v1 as uuid } from 'uuid';
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { OrderRepository } from './repository/order.repository';
+import { OrderRepository } from '../repository/order.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from './entity/order.entity';
-import { OrderItemRepository } from './repository/order-item.repository';
-import { ItemRepository } from './repository/item.repository';
-import { OrderItem } from './entity/order-item.entity';
-import { Item } from './entity/item.entity';
-import { User } from '../users/user.entity';
-import { UserRepository } from '../users/user.repository';
+import { Order } from '../entity/order.entity';
+import { OrderItemRepository } from '../repository/order-item.repository';
+import { ItemRepository } from '../repository/item.repository';
+import { OrderItem } from '../entity/order-item.entity';
+import { Item } from '../entity/item.entity';
+import { User } from '../../users/user.entity';
+import { UserRepository } from '../../users/user.repository';
 import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
-import { Page } from '../common/pagination/page';
-import { PageRequest } from '../common/pagination/page-request';
-import { OrderItemRequestDto, OrderRequestDto } from './dto/order-request.dto';
-import { OrderStatus } from './entity/order.enum';
-import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from './dto/order-response.dto';
-import { OrderItemMap } from '../common/type/order-item-map.type';
+import { Page } from '../../common/pagination/page';
+import { PageRequest } from '../../common/pagination/page-request';
+import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
+import { OrderStatus } from '../order.enum';
+import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
+import { OrderItemMap } from '../../common/type/order-item-map.type';
 
 @Injectable()
 export class OrdersService {
@@ -79,8 +79,8 @@ export class OrdersService {
 
         for (const { orderItem, itemId } of map) {
             const item = await this.itemRepository.createQueryBuilder('item')
-                .select(['item.code', 'item.name', 'item.size', 'item.price'])
-                .where('item.id = :itemId', { itemId })
+                .select(['item.code', 'item.name', 'item.size', 'item.price', 'item.image'])
+                .where(`item.id = ${itemId}`)
                 .getOneOrFail()
                 .catch(e => {
                     if (e instanceof EntityNotFoundError) {
@@ -140,6 +140,7 @@ export class OrdersService {
         return new CartResponseDto(orderItem.order.code, orderItem.item.code, orderItem.orderCount);
     }
 
+    // TODO : 주문 완료 시 각 상품의 판매량 증가
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
     async makeOrderFromCartItems(dto: OrderRequestDto): Promise<string> {
         const { cart, si, gu, dong, etc } = dto;
