@@ -32,7 +32,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/decorator/roles.decorator';
 import { Cookie } from '../common/decorator/cookie.decorator';
 import { CartResponseDto } from '../orders/dto/order-response.dto';
-import { RolesGuard } from '../common/decorator/roles.guard';
+import { RolesGuard } from '../common/guard/roles.guard';
 
 @Controller('/api/users')
 export class UsersController {
