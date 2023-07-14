@@ -62,7 +62,7 @@ export class UsersService {
 
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
-        const user: User = await this.userRepository.findOneByOrFail({ email })
+        const user = await this.userRepository.findOneByOrFail({ email })
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 이메일에 대한 유저를 찾을 수 없습니다. Email : ${email}`);
@@ -81,8 +81,8 @@ export class UsersService {
     // 유저의 api 요청마다 쿠키에 있는 token 값으로 call
     async tokenReissue(token: string): Promise<JwtTokenResponseDto | null> {
         const decode = this.jwtService.decode(token);
-        const now: Date = new Date();
-        const expire: Date = new Date(decode['exp'] * 1000);
+        const now = new Date();
+        const expire = new Date(decode['exp'] * 1000);
         const min = Math.floor((expire.getTime() - now.getTime()) / (1000 * 60));
         console.log(`남은시간 = ${min}분`);
 
@@ -111,29 +111,30 @@ export class UsersService {
     }
 
     async logout(id: bigint): Promise<void> {
-        const user: User = await this.findUserById(id);
+        const user = await this.findUserById(id);
         await this.redisService.delete(user.email);
     }
 
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
-        const users: User[] = await this.userRepository.find({
+        const users = await this.userRepository.find({
             skip : page.getOffset(),
             take : page.getLimit()
         });
+
         const totalCount = await this.userRepository.count();
         const pageSize = page.pageSize;
         return new Page(pageSize, totalCount, users);
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
-        const user: User = await this.findUserById(id);
+        const user = await this.findUserById(id);
         return new UserProfileResponseDto(user);
     }
 
     async updatePassword(id: bigint, dto: UpdatePasswordRequestDto): Promise<void> {
         // 기존 비밀번호 입력 -> 새 비밀번호 입력 -> 비밀번호 확인
         const { oldPassword, newPassword, checkPassword } = dto;
-        const user: User = await this.findUserById(id);
+        const user = await this.findUserById(id);
 
         if (!await bcrypt.compare(oldPassword, user.password)) {
             throw new BadRequestException(`기존 비밀번호와 다릅니다.`);
@@ -152,7 +153,7 @@ export class UsersService {
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
         const { name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
-        const user: User = await this.findUserById(id);
+        const user = await this.findUserById(id);
 
         user.updateProfile(name, age, gender, { si, gu, dong, etc }, phoneNumber);
         await this.userRepository.save(user);
@@ -160,7 +161,7 @@ export class UsersService {
     }
 
     async deleteUserById(id: bigint): Promise<void> {
-        const user: User = await this.findUserById(id);
+        const user = await this.findUserById(id);
         await this.userRepository.softDelete({ id : user.id });
     }
 
@@ -191,9 +192,8 @@ export class UsersService {
 
         const accessTokenExpiry = jwtConfig.accessToken.expiresIn; // 3600 sec (1h)
         const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)
-
-        console.log(accessToken);
         await this.redisService.set(username, refreshToken, refreshTokenExpiry);
+
         const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry * 1000)));
         return new JwtTokenResponseDto(accessToken, refreshToken, date);
     }
