@@ -39,6 +39,15 @@ export class Item extends BaseEntity {
     @Column({ comment : '상품 가격' })
     price: number;
 
+    @Column({ comment : '상품 상세 설명', length : 2000 })
+    description: string;
+
+    @Column({ comment : '상품 이미지 URL', type : 'blob' })
+    image: Buffer;
+
+    @Column({ comment : '상품 판매량' })
+    salesCount: number;
+
     @Column({ comment : '상품 재고' })
     stockQuantity: number;
 
