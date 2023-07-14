@@ -70,7 +70,7 @@ export class OrdersService {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${orderCode}`);
                 } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
 
@@ -86,7 +86,7 @@ export class OrdersService {
                     if (e instanceof EntityNotFoundError) {
                         throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item ID : ${itemId}`);
                     } else {
-                        throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                        throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                     }
                 });
 
@@ -106,7 +106,7 @@ export class OrdersService {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${itemCode}`);
                 } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
 
@@ -150,7 +150,7 @@ export class OrdersService {
             if (e instanceof EntityNotFoundError) {
                 throw new NotFoundException(`장바구니가 비어있거나 해당 주문 건이 이미 진행되었습니다.`);
             } else {
-                throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
 
@@ -197,7 +197,7 @@ export class OrdersService {
             if (e instanceof EntityNotFoundError) {
                 throw new NotFoundException(`해당 주문건이 이미 진행 중입니다. Order Code : ${orderCode}`);
             } else {
-                throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
 
@@ -222,7 +222,7 @@ export class OrdersService {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${code}`);
                 } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
     }
@@ -233,7 +233,7 @@ export class OrdersService {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${code}`);
                 } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
     }

@@ -15,7 +15,7 @@ export class ItemsService {
 
     // 검색 조건에 맞는 상품 페이지 조회
     async findItemsByQuery(query: ItemQueryRequestDto, category: Category): Promise<Page<ItemSimpleResponseDto>> {
-        const { pageNo, pageSize, keyword, gender, minPrice, maxPrice, size} = query;
+        const { pageNo, pageSize, keyword, gender, minPrice, maxPrice, size } = query;
         const page = new PageRequest(pageNo, pageSize);
         const [items, count] = await this.itemRepository.createQueryBuilder('item')
             .select('item')
@@ -79,7 +79,7 @@ export class ItemsService {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${code}`);
                 } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
     }
