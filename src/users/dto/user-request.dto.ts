@@ -10,7 +10,7 @@ import {
     MaxLength,
 } from 'class-validator';
 import { PartialType, PickType } from '@nestjs/mapped-types';
-import { Gender } from '../user.entity';
+import { Gender } from '../user.enum';
 
 export class CreateUserRequestDto {
 

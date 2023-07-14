@@ -10,16 +10,7 @@ import {
 } from 'typeorm';
 import { Order } from '../orders/entity/order.entity';
 import { Address } from '../common/type/address.type';
-
-export enum Gender {
-    MALE = 'male',
-    FEMALE = 'female'
-}
-
-export enum Role {
-    ADMIN = 'admin',
-    USER = 'user'
-}
+import { Gender, Role } from './user.enum';
 
 @Entity()
 export class User extends BaseEntity {

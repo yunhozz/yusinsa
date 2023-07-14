@@ -10,7 +10,6 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { UserRepository } from '../user.repository';
-import { Role, User } from '../user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -25,6 +24,8 @@ import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
 import { RedisCustomService } from './redis-custom.service';
 import { EntityNotFoundError } from 'typeorm';
+import { Role } from '../user.enum';
+import { User } from '../user.entity';
 
 const jwtConfig = config.get('jwt');
 

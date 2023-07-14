@@ -22,7 +22,6 @@ import {
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto,
 } from './dto/user-request.dto';
-import { Role, User } from './user.entity';
 import { GetUser } from '../common/decorator/get-user.decorator';
 import { ApiResponse } from '../common/response/api-response';
 import { Request, Response } from 'express';
@@ -33,6 +32,8 @@ import { Roles } from '../common/decorator/roles.decorator';
 import { Cookie } from '../common/decorator/cookie.decorator';
 import { CartResponseDto } from '../orders/dto/order-response.dto';
 import { RolesGuard } from '../common/guard/roles.guard';
+import { Role } from './user.enum';
+import { User } from './user.entity';
 
 @Controller('/api/users')
 export class UsersController {
