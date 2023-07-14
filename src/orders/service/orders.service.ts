@@ -140,7 +140,6 @@ export class OrdersService {
         return new CartResponseDto(orderItem.order.code, orderItem.item.code, orderItem.orderCount);
     }
 
-    // TODO : 주문 완료 시 각 상품의 판매량 증가
     // 주문 완료 시 주문 상태 변경, 장바구니 삭제
     async makeOrderFromCartItems(dto: OrderRequestDto): Promise<string> {
         const { cart, si, gu, dong, etc } = dto;
@@ -155,11 +154,12 @@ export class OrdersService {
             }
         });
 
-        const quantities = new Map<bigint, number>();
+        const quantities = new Map<bigint, number[]>();
         let resultPrice = 0;
 
         for (const c of cart) {
             const item = await this.findItemByCode(c.itemCode);
+            const salesCount = item.salesCount + c.count;
             const remainQuantity = item.stockQuantity - c.count;
 
             if (remainQuantity < 0) {
@@ -167,10 +167,10 @@ export class OrdersService {
                 throw new BadRequestException(`상품 재고 부족. 이름 : ${item.name}, 재고 : ${item.stockQuantity}, 주문 수량 : ${c.count}`);
             }
             resultPrice += item.price * c.count;
-            quantities.set(item.id, remainQuantity);
+            quantities.set(item.id, [salesCount, remainQuantity]);
         }
-        for (const [itemId, quantity] of quantities.entries()) {
-            await this.itemRepository.update({ id : itemId }, { stockQuantity : quantity });
+        for (const [itemId, arr] of quantities.entries()) {
+            await this.itemRepository.update({ id : itemId }, { salesCount : arr[0], stockQuantity : arr[1] });
         }
         await this.orderRepository.update({ id : order.id }, {
             totalPrice : resultPrice,
