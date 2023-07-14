@@ -1,4 +1,4 @@
-import { OrderStatus } from '../entity/order.enum';
+import { OrderStatus } from '../order.enum';
 import { Order } from '../entity/order.entity';
 import { OrderItem } from '../entity/order-item.entity';
 import { Item } from '../entity/item.entity';

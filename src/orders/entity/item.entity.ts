@@ -11,7 +11,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { OrderItem } from './order-item.entity';
-import { Gender } from './order.enum';
+import { Gender } from '../order.enum';
 import { CATEGORIES } from '../../common/type/categories.type';
 
 @Entity()
@@ -27,7 +27,7 @@ export class Item extends BaseEntity {
     @Column({ comment : '상품 식별 코드 (uuid)' })
     code: string;
 
-    @Column({ comment : '상품 성별', type : "enum", enum : Gender })
+    @Column({ comment : '상품 성별', type : 'enum', enum : Gender })
     gender: Gender;
 
     @Column({ comment : '상품 이름' })
@@ -36,13 +36,13 @@ export class Item extends BaseEntity {
     @Column({ comment : '상품 사이즈' })
     size: string;
 
-    @Column({ comment : '상품 수량' })
+    @Column({ comment : '상품 가격' })
     price: number;
 
     @Column({ comment : '상품 재고' })
     stockQuantity: number;
 
-    @OneToMany(() => OrderItem, orderItems => orderItems.item, { lazy : true })
+    @OneToMany(() => OrderItem, orderItems => orderItems.item)
     orderItems: OrderItem[];
 
     @CreateDateColumn({ comment : '생성 일자' })

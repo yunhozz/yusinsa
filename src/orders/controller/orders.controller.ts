@@ -14,14 +14,14 @@ import {
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
-import { OrdersService } from '../orders.service';
+import { OrdersService } from '../service/orders.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiResponse } from '../../common/response/api-response';
 import { GetUser } from '../../common/decorator/get-user.decorator';
 import { Response } from 'express';
 import { PageRequest } from '../../common/pagination/page-request';
 import { AddressRequestDto, CartItemRequestDto, OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
-import { OrderStatus } from '../entity/order.enum';
+import { OrderStatus } from '../order.enum';
 import { Cookie } from '../../common/decorator/cookie.decorator';
 import { CartResponseDto } from '../dto/order-response.dto';
 

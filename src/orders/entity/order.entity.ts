@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { User } from '../../users/user.entity';
-import { OrderStatus } from './order.enum';
+import { OrderStatus } from '../order.enum';
 import { Address } from '../../common/type/address.type';
 
 @Entity()
