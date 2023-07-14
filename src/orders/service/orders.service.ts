@@ -80,7 +80,7 @@ export class OrdersService {
         for (const { orderItem, itemId } of map) {
             const item = await this.itemRepository.createQueryBuilder('item')
                 .select(['item.code', 'item.name', 'item.size', 'item.price', 'item.image'])
-                .where(`item.id = ${itemId}`)
+                .where('item.id = :itemId', { itemId })
                 .getOneOrFail()
                 .catch(e => {
                     if (e instanceof EntityNotFoundError) {

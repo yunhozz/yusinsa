@@ -7,20 +7,23 @@ import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto
 import { Gender } from '../order.enum';
 import { Page } from '../../common/pagination/page';
 import { Category } from '../../common/type/categories.type';
+import { PageRequest } from '../../common/pagination/page-request';
 
 @Injectable()
 export class ItemsService {
     constructor(private readonly itemRepository: ItemRepository) {}
 
+    // 검색 조건에 맞는 상품 페이지 조회
     async findItemsByQuery(query: ItemQueryRequestDto, category: Category): Promise<Page<ItemSimpleResponseDto>> {
-        const { page, keyword, gender, minPrice, maxPrice, size} = query;
+        const { pageNo, pageSize, keyword, gender, minPrice, maxPrice, size} = query;
+        const page = new PageRequest(pageNo, pageSize);
         const [items, count] = await this.itemRepository.createQueryBuilder('item')
             .select('item')
             .where(new Brackets(qb => {
-                qb.where(`item.topCategory = ${category}`)
-                    .orWhere(`item.outerCategory = ${category}`)
-                    .orWhere(`item.pantsCategory = ${category}`)
-                    .orWhere(`item.shoesCategory = ${category}`)
+                qb.where('item.topCategory = :category', { category })
+                    .orWhere('item.outerCategory = :category', { category })
+                    .orWhere('item.pantsCategory = :category', { category })
+                    .orWhere('item.shoesCategory = :category', { category });
             }))
             .andWhere(new Brackets(qb => {
                 if (keyword) {
@@ -32,25 +35,21 @@ export class ItemsService {
                     switch (gender) {
                         case Gender.MAN: qb.andWhere(qGender, { gender : Gender.MAN }); break;
                         case Gender.WOMAN: qb.andWhere(qGender, { gender : Gender.WOMAN }); break;
-                        default: qb.andWhere(qGender, { gender : Gender.UNISEX });
+                        default: qb.andWhere(qGender, { gender: Gender.UNISEX });
                     }
-                } else {
-                    qb.andWhere(qGender, { gender : Gender.MAN })
-                        .orWhere(qGender, { gender : Gender.WOMAN })
-                        .orWhere(qGender, { gender : Gender.UNISEX });
                 }
                 if (minPrice || maxPrice) {
                     if (minPrice && !maxPrice) {
-                        qb.andWhere(`item.price >= ${minPrice}`);
+                        qb.andWhere('item.price >= :minPrice', { minPrice });
                     } else if (!minPrice && maxPrice) {
-                        qb.andWhere(`item.price <= ${maxPrice}`);
+                        qb.andWhere('item.price <= :maxPrice', { maxPrice });
                     } else {
-                        qb.andWhere(`item.price >= ${minPrice}`)
-                            .andWhere(`item.price <= ${maxPrice}`);
+                        qb.andWhere('item.price >= :minPrice', { minPrice })
+                            .andWhere('item.price <= :maxPrice', { maxPrice });
                     }
                 }
                 if (size) {
-                    qb.andWhere(`item.size = ${size}`);
+                    qb.andWhere('item.size = :size', { size });
                 }
             }))
             .offset(page.getOffset())
@@ -59,15 +58,19 @@ export class ItemsService {
             .getManyAndCount();
 
         const itemResponseDtoList: ItemSimpleResponseDto[] = [];
-        for (const item of items) {
-            itemResponseDtoList.push(new ItemSimpleResponseDto(item));
-        }
+        items.forEach(item => itemResponseDtoList.push(new ItemSimpleResponseDto(item)));
         return new Page(page.pageSize, count, itemResponseDtoList);
     }
 
+    // 특정 상품 상세 조회
     async findItemDetailsByCode(itemCode: string): Promise<ItemResponseDto> {
         const item = await this.findItemByCode(itemCode);
         return new ItemResponseDto(item);
+    }
+
+    // TODO : 상품 생성
+    async saveItem(): Promise<string> {
+        return null;
     }
 
     private async findItemByCode(code: string): Promise<Item> {

@@ -1,4 +1,3 @@
-import { PickType } from '@nestjs/mapped-types';
 import { Gender } from '../order.enum';
 import { Item } from '../entity/item.entity';
 
@@ -24,4 +23,16 @@ export class ItemResponseDto {
     }
 }
 
-export class ItemSimpleResponseDto extends PickType(ItemResponseDto, ['gender', 'name', 'price', 'image']) {}
+export class ItemSimpleResponseDto {
+    gender: Gender;
+    name: string;
+    price: number;
+    image: Buffer;
+
+    constructor(item: Item) {
+        this.gender = item.gender;
+        this.name = item.name;
+        this.price = item.price;
+        this.image = item.image;
+    }
+}

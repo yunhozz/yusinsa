@@ -1,9 +1,14 @@
 import { Gender } from '../order.enum';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
-import { PageRequest } from '../../common/pagination/page-request';
 
 export class ItemQueryRequestDto {
-    page: PageRequest;
+    @IsNumber()
+    @IsOptional()
+    pageNo?: number | 1;
+
+    @IsNumber()
+    @IsOptional()
+    pageSize?: number | 10;
 
     @IsString()
     @IsOptional()
