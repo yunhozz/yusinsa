@@ -2,7 +2,7 @@ import * as config from 'config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { TokenPayload } from '../type/token-payload';
+import { TokenPayload } from '../../common/type/token-payload';
 import { Request } from 'express';
 import { UserRepository } from '../../users/user.repository';
 
@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         super({
             secretOrKey : process.env.JWT_SECRET || jwtConfig.secret,
             jwtFromRequest : ExtractJwt.fromAuthHeaderAsBearerToken(), // 헤더에 있는 토큰을 해석하여 Request 객체에 payload 반환
-            ignoreExpiration : true // 토큰 만료 검증은 서버에서 따로 진행,
+            ignoreExpiration : true // 토큰 만료 검증은 서버에서 따로 진행
             // jwtFromRequest : ExtractJwt.fromExtractors([(req: Request) => {
             //     const token = req?.headers?.authorization;
             //     return token.split(' ')[1];

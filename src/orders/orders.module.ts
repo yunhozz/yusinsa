@@ -6,7 +6,7 @@ import { Order } from './entity/order.entity';
 import { OrderItem } from './entity/order-item.entity';
 import { Item } from './entity/item.entity';
 import { Delivery } from './entity/delivery.entity';
-import { TypeOrmCustomModule } from '../config/type-orm.custom.module';
+import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
 import { OrderRepository } from './repository/order.repository';
 import { OrderItemRepository } from './repository/order-item.repository';
 import { ItemRepository } from './repository/item.repository';

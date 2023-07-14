@@ -31,7 +31,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/decorator/roles.decorator';
 import { Cookie } from '../common/decorator/cookie.decorator';
 import { CartResponseDto } from '../orders/dto/order-response.dto';
-import { RolesGuard } from '../common/guard/roles.guard';
+import { RolesGuard } from '../config/guard/roles.guard';
 import { Role } from './user.enum';
 import { User } from './user.entity';
 

@@ -4,11 +4,11 @@ import { UsersController } from './users.controller';
 import { UsersService } from './service/users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
-import { TypeOrmCustomModule } from '../config/type-orm.custom.module';
+import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
 import { UserRepository } from './user.repository';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from '../common/strategy/jwt.strategy';
+import { JwtStrategy } from '../config/strategy/jwt.strategy';
 import { RedisCustomService } from './service/redis-custom.service';
 
 const jwtConfig = config.get('jwt');

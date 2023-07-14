@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './config/type-orm.config';
+import { typeOrmConfig } from './config/typeorm/type-orm.config';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { OrdersModule } from './orders/orders.module';
 
