@@ -94,20 +94,16 @@ export class UsersService {
                 const username = decode['username'];
                 const roles = decode['roles'];
                 return await this.generateJwtTokens(sub, username, roles);
-
             } catch (e) {
                 switch (e.message) {
                     case 'INVALID_TOKEN' || 'TOKEN_IS_ARRAY' || 'NO_USER':
                         throw new UnauthorizedException('유효하지 않은 토큰입니다.');
-
                     case 'EXPIRED_TOKEN':
                         throw new ForbiddenException('토큰이 만료되었습니다.');
-
                     default:
                         throw new HttpException('서버 오류입니다.', 500);
                 }
             }
-
         } else return null;
     }
 
@@ -138,26 +134,19 @@ export class UsersService {
         const user = await this.findUserById(id);
 
         if (!await bcrypt.compare(oldPassword, user.password)) {
-            throw new BadRequestException(`기존 비밀번호와 다릅니다.`);
+            throw new BadRequestException('기존 비밀번호와 다릅니다.');
         }
-
         if (newPassword !== checkPassword) {
-            throw new BadRequestException(`업데이트할 비밀번호와 일치하지 않습니다.`)
+            throw new BadRequestException('업데이트할 비밀번호와 일치하지 않습니다.');
         }
-
         const salt = await bcrypt.genSalt();
         const password = await bcrypt.hash(newPassword, salt);
-
-        user.updatePassword(password);
-        await this.userRepository.save(user);
+        await this.userRepository.update({ id : user.id }, { password });
     }
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
-        const { name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
         const user = await this.findUserById(id);
-
-        user.updateProfile(name, age, gender, { si, gu, dong, etc }, phoneNumber);
-        await this.userRepository.save(user);
+        await this.userRepository.update({ id : user.id }, dto);
         return new UserProfileResponseDto(user);
     }
 
@@ -172,7 +161,7 @@ export class UsersService {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`유저를 찾을 수 없습니다.`);
                 } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
     }
@@ -180,7 +169,6 @@ export class UsersService {
     private async generateJwtTokens(sub: bigint, username: string, roles: Role[]): Promise<JwtTokenResponseDto> {
         const payload: TokenPayload = { sub, username, roles };
         const secret = jwtConfig.secret;
-
         const accessToken = this.jwtService.sign(payload, {
             secret : secret,
             expiresIn : jwtConfig.accessToken.expiresIn
