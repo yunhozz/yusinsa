@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { OrdersController } from './controller/orders.controller';
-import { OrdersService } from './orders.service';
+import { OrdersService } from './service/orders.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entity/order.entity';
 import { OrderItem } from './entity/order-item.entity';
@@ -14,6 +14,7 @@ import { DeliveryRepository } from './repository/delivery.repository';
 import { User } from '../users/user.entity';
 import { ItemsController } from './controller/items.controller';
 import { PassportModule } from '@nestjs/passport';
+import { ItemsService } from './service/items.service';
 
 @Module({
     imports : [
@@ -27,7 +28,7 @@ import { PassportModule } from '@nestjs/passport';
         PassportModule.register({ defaultStrategy : 'jwt' })
     ],
     controllers : [OrdersController, ItemsController],
-    providers : [OrdersService],
+    providers : [OrdersService, ItemsService],
     exports : []
 })
 export class OrdersModule {}

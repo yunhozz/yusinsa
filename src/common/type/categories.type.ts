@@ -6,3 +6,5 @@ export const CATEGORIES = {
     PANTS : PantsCategory,
     SHOES : ShoesCategory
 } as const;
+
+export type Category = typeof CATEGORIES[keyof typeof CATEGORIES];
