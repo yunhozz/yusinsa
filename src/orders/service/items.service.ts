@@ -82,7 +82,7 @@ export class ItemsService {
     }
 
     async addItem(dto: ItemRequestDto): Promise<string> {
-        const { name, categoryParent, categoryChild } = dto;
+        const { name, size, categoryParent, categoryChild } = dto;
         const exist = await this.itemRepository.exist({ where : { name } });
 
         if (exist) {
@@ -98,7 +98,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                const top = this.topRepository.create({ ...baseObj, ...{ topCategory : category } });
+                const top = this.topRepository.create({ ...baseObj, ...{ topCategory : category, size } });
                 await this.topRepository.save(top);
                 break;
             case OuterCategory:
@@ -106,7 +106,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                const outer = this.outerRepository.create({ ...baseObj, ...{ outerCategory : category } });
+                const outer = this.outerRepository.create({ ...baseObj, ...{ outerCategory : category, size : size } });
                 await this.outerRepository.save(outer);
                 break;
             case PantsCategory:
@@ -114,7 +114,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                const pants = this.pantsRepository.create({ ...baseObj, ...{ pantsCategory : category } });
+                const pants = this.pantsRepository.create({ ...baseObj, ...{ pantsCategory : category, size } });
                 await this.pantsRepository.save(pants);
                 break;
             case ShoesCategory:
@@ -122,7 +122,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                const shoes = this.shoesRepository.create({ ...baseObj, ...{ shoesCategory : category } });
+                const shoes = this.shoesRepository.create({ ...baseObj, ...{ shoesCategory : category, size } });
                 await this.shoesRepository.save(shoes);
                 break;
             default:

@@ -32,7 +32,7 @@ export class Item extends BaseEntity {
     price: number;
 
     @Column({ comment : '상품 사이즈' })
-    size: string | number;
+    size: string;
 
     @Column({ comment : '상품 상세 설명', length : 2000 })
     description: string;
@@ -63,38 +63,54 @@ export class Item extends BaseEntity {
 export class Top extends Item implements TopItem {
     @Column({ comment : '상의 카테고리', type : 'enum', enum : TopCategory })
     topCategory: TopCategory;
+
+    @Column({ comment : '상의 사이즈' })
+    size: string;
 }
 
 @ChildEntity('OUTER')
 export class Outer extends Item implements OuterItem {
     @Column({ comment : '아우터 카테고리', type : 'enum', enum : OuterCategory })
     outerCategory: OuterCategory;
+
+    @Column({ comment : '아우터 사이즈' })
+    size: string;
 }
 
 @ChildEntity('PANTS')
 export class Pants extends Item implements PantsItem {
-    @Column({ comment : '바지 카테고리', type : 'enum', enum : PantsCategory })
+    @Column({ comment : '하의 카테고리', type : 'enum', enum : PantsCategory })
     pantsCategory: PantsCategory;
+
+    @Column({ comment : '하의 사이즈' })
+    size: string;
 }
 
 @ChildEntity('SHOES')
 export class Shoes extends Item implements ShoesItem {
     @Column({ comment : '신발 카테고리', type : 'enum', enum : ShoesCategory })
     shoesCategory: ShoesCategory;
+
+    @Column({ comment : '신발 사이즈' })
+    size: string;
 }
 
 interface TopItem {
     topCategory: TopCategory;
+    size: string;
 }
 
 interface OuterItem {
     outerCategory: OuterCategory;
+    size: string;
 }
 
 interface PantsItem {
     pantsCategory: PantsCategory;
+    size: string;
 }
 
 interface ShoesItem {
     shoesCategory: ShoesCategory;
+    size: string;
 }
