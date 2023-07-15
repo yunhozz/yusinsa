@@ -6,10 +6,6 @@ export class OrderItemRequestDto {
     @IsNotEmpty()
     itemCode: string;
 
-    @IsString()
-    @IsNotEmpty()
-    size: string;
-
     @IsNumber()
     @Min(1, { message : '최소 수량은 1개입니다.' })
     count: number;

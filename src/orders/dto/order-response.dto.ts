@@ -37,13 +37,13 @@ export class OrderItemResponseDto {
 export class ItemResponseDto {
     code: string;
     name: string;
-    size: string;
+    size: string | number;
     price: number;
 
-    constructor(item: Item) {
+    constructor(item: Item, size: string | number) {
         this.code = item.code;
         this.name = item.name;
-        this.size = item.size;
+        this.size = size;
         this.price = item.price;
     }
 }

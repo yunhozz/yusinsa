@@ -6,7 +6,7 @@ import { Order } from '../entity/order.entity';
 import { OrderItemRepository } from '../repository/order-item.repository';
 import { ItemRepository } from '../repository/item.repository';
 import { OrderItem } from '../entity/order-item.entity';
-import { Item } from '../entity/item.entity';
+import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
 import { User } from '../../users/user.entity';
 import { UserRepository } from '../../users/user.repository';
 import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
@@ -27,7 +27,7 @@ export class OrdersService {
         @InjectRepository(OrderItem)
         private readonly orderItemRepository: OrderItemRepository,
         @InjectRepository(Item)
-        private readonly itemRepository: ItemRepository
+        private readonly itemRepository: ItemRepository<Top | Outer | Pants | Shoes>
     ) {}
 
     private readonly logger = new Logger(OrdersService.name);
@@ -79,7 +79,7 @@ export class OrdersService {
 
         for (const { orderItem, itemId } of map) {
             const item = await this.itemRepository.createQueryBuilder('item')
-                .select(['item.code', 'item.name', 'item.size', 'item.price', 'item.image'])
+                .select(['item.code', 'item.name', 'item.price', 'item.image'])
                 .where('item.id = :itemId', { itemId })
                 .getOneOrFail()
                 .catch(e => {
@@ -90,7 +90,8 @@ export class OrdersService {
                     }
                 });
 
-            const itemInfo = new ItemResponseDto(item);
+            // TODO : 상품 사이즈 구하기
+            const itemInfo = new ItemResponseDto(item, null);
             const orderItemResponseDto = new OrderItemResponseDto(orderItem, itemInfo);
             orderItemResponseDtoList.push(orderItemResponseDto);
         }
@@ -99,17 +100,9 @@ export class OrdersService {
 
     // 장바구니에 상품 추가
     async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<CartResponseDto> {
-        const { itemCode, size, count } = dto;
+        const { itemCode, count } = dto;
         const user = await this.userRepository.findOneBy({ id : userId });
-        const item = await this.itemRepository.findOneByOrFail({ code : itemCode, size })
-            .catch(e => {
-                if (e instanceof EntityNotFoundError) {
-                    throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item Code : ${itemCode}`);
-                } else {
-                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            });
-
+        const item = await this.findItemByCode(itemCode);
         const orderItem = await this.orderItemRepository.create({
             order : null,
             item,
