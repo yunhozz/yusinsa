@@ -1,17 +1,30 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { v1 as uuid } from 'uuid';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ItemRepository } from '../repository/item.repository';
-import { Item } from '../entity/item.entity';
+import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
 import { Brackets, EntityNotFoundError, Like } from 'typeorm';
-import { ItemQueryRequestDto } from '../dto/item-request.dto';
+import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
 import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
-import { Gender } from '../order.enum';
+import { Categories, Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
 import { Page } from '../../common/pagination/page';
-import { Category } from '../../common/type/categories.type';
+import { Category } from '../../common/type/category.type';
 import { PageRequest } from '../../common/pagination/page-request';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ItemsService {
-    constructor(private readonly itemRepository: ItemRepository) {}
+    constructor(
+        @InjectRepository(Item)
+        private readonly itemRepository: ItemRepository<Item>,
+        @InjectRepository(Top)
+        private readonly topRepository: ItemRepository<Top>,
+        @InjectRepository(Outer)
+        private readonly outerRepository: ItemRepository<Outer>,
+        @InjectRepository(Pants)
+        private readonly pantsRepository: ItemRepository<Pants>,
+        @InjectRepository(Shoes)
+        private readonly shoesRepository: ItemRepository<Shoes>
+    ) {}
 
     // 검색 조건에 맞는 상품 페이지 조회
     async findItemsByQuery(query: ItemQueryRequestDto, category: Category): Promise<Page<ItemSimpleResponseDto>> {
@@ -68,8 +81,68 @@ export class ItemsService {
         return new ItemResponseDto(item);
     }
 
-    // TODO : 상품 생성
-    async saveItem(): Promise<string> {
+    async addItem(dto: ItemRequestDto): Promise<string> {
+        const { name, categoryParent, categoryChild, size } = dto;
+        const exist = await this.itemRepository.exist({ where : { name } });
+
+        if (exist) {
+            throw new BadRequestException(`해당 이름을 가진 상품이 이미 존재합니다. name : ${name}`);
+        }
+        const baseObj = { ...dto, ...{ code : uuid(), salesCount : 0 }};
+        const categoryEnum = Categories[categoryParent];
+        let category, extraObj;
+
+        switch (categoryEnum.valueOf()) {
+            case TopCategory:
+                category = TopCategory[categoryChild];
+                if (!category) {
+                    throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
+                }
+                extraObj = { topCategory : category, topSize : String(size) };
+                const top = this.topRepository.create({ ...baseObj, ...extraObj });
+                await this.topRepository.save(top);
+                break;
+            case OuterCategory:
+                category = OuterCategory[categoryChild];
+                if (!category) {
+                    throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
+                }
+                extraObj = { outerCategory : category, outerSize : String(size) };
+                const outer = this.outerRepository.create({ ...baseObj, ...extraObj });
+                await this.outerRepository.save(outer);
+                break;
+            case PantsCategory:
+                category = PantsCategory[categoryChild];
+                if (!category) {
+                    throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
+                }
+                extraObj = { pantsCategory : category, pantsSize : Number(size) };
+                const pants = this.pantsRepository.create({ ...baseObj, ...extraObj });
+                await this.pantsRepository.save(pants);
+                break;
+            case ShoesCategory:
+                category = ShoesCategory[categoryChild];
+                if (!category) {
+                    throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
+                }
+                extraObj = { shoesCategory : category, shoesSize : Number(size) };
+                const shoes = this.shoesRepository.create({ ...baseObj, ...extraObj });
+                await this.shoesRepository.save(shoes);
+                break;
+            default:
+                throw new BadRequestException(`해당하는 카테고리가 존재하지 않습니다. 입력 : ${categoryParent}`);
+        }
+        return baseObj.code;
+    }
+
+    async updateItem(itemCode: string, dto: ItemUpdateRequestDto): Promise<string> {
+        const item = await this.findItemByCode(itemCode);
+        await this.itemRepository.update({ id : item.id }, dto);
+        return item.code;
+    }
+
+    // TODO : 특정 상품 삭제
+    async softDeleteItem(itemCode: string): Promise<string> {
         return null;
     }
 

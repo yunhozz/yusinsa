@@ -1,8 +1,10 @@
 import { Gender } from '../order.enum';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min, Validate } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { Category } from '../../common/type/category.type';
 
 export class ItemRequestDto {
-    @IsEnum(Gender, { message : 'man, woman, unisex 중 하나여야 합니다.' })
+    @IsEnum(Gender, { message: 'man, woman, unisex 중 하나여야 합니다.' })
     @IsNotEmpty()
     gender: Gender;
 
@@ -10,12 +12,8 @@ export class ItemRequestDto {
     @IsNotEmpty()
     name: string;
 
-    @IsString()
-    @IsNotEmpty()
-    size: string;
-
     @IsNumber()
-    @Min(0, { message : '가격은 0원 이상이어야 합니다.' })
+    @Min(0, { message: '가격은 0원 이상이어야 합니다.' })
     price: number;
 
     @IsString()
@@ -26,9 +24,23 @@ export class ItemRequestDto {
     image?: Buffer;
 
     @IsNumber()
-    @Min(1, { message : '최소 수량은 1개입니다.' })
+    @Min(1, { message: '최소 수량은 1개입니다.' })
     stockQuantity: number;
+
+    @IsString()
+    @IsNotEmpty()
+    categoryParent: Category;
+
+    @IsString()
+    @IsNotEmpty()
+    categoryChild: string;
+
+    @Validate((size: any): boolean => typeof size == 'string' || typeof size == 'number')
+    @IsNotEmpty()
+    size: string | number;
 }
+
+export class ItemUpdateRequestDto extends PartialType(ItemRequestDto) {}
 
 export class ItemQueryRequestDto {
     @IsNumber()
