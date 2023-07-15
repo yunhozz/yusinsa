@@ -44,3 +44,10 @@ export enum OrderStatus {
     COMPLETE = 'complete',
     CANCEL = 'cancel'
 }
+
+export const Categories = {
+    TOP : TopCategory,
+    OUTER : OuterCategory,
+    PANTS : PantsCategory,
+    SHOES : ShoesCategory
+} as const;

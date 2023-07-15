@@ -11,15 +11,10 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { OrderItem } from './order-item.entity';
-import { Gender } from '../order.enum';
-import { CATEGORIES } from '../../common/type/categories.type';
+import { Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
 
 @Entity()
-@TableInheritance({ column : {
-        type : 'varchar',
-        name : 'type'
-    }
-})
+@TableInheritance({ column : { type : 'varchar', name : 'type' } })
 export class Item extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
@@ -30,11 +25,8 @@ export class Item extends BaseEntity {
     @Column({ comment : '상품 성별', type : 'enum', enum : Gender })
     gender: Gender;
 
-    @Column({ comment : '상품 이름' })
+    @Column({ comment : '상품 이름', unique : true })
     name: string;
-
-    @Column({ comment : '상품 사이즈' })
-    size: string;
 
     @Column({ comment : '상품 가격' })
     price: number;
@@ -42,8 +34,8 @@ export class Item extends BaseEntity {
     @Column({ comment : '상품 상세 설명', length : 2000 })
     description: string;
 
-    @Column({ comment : '상품 이미지 URL', type : 'blob' })
-    image: Buffer;
+    @Column({ comment : '상품 이미지', type : 'blob', nullable : true })
+    image?: Buffer;
 
     @Column({ comment : '상품 판매량' })
     salesCount: number;
@@ -64,26 +56,58 @@ export class Item extends BaseEntity {
     deletedAt!: Date | null;
 }
 
-@ChildEntity('T')
-export class Top extends Item {
-    @Column({ comment : '상의 카테고리', type : 'enum', enum : CATEGORIES.TOP })
-    topCategory: typeof CATEGORIES.TOP;
+@ChildEntity('TOP')
+export class Top extends Item implements TopItem {
+    @Column({ comment : '상의 카테고리', type : 'enum', enum : TopCategory })
+    topCategory: TopCategory;
+
+    @Column({ comment : '상의 사이즈' })
+    topSize: string;
 }
 
-@ChildEntity('O')
-export class Outer extends Item {
-    @Column({ comment : '아우터 카테고리', type : 'enum', enum : CATEGORIES.OUTER })
-    outerCategory: typeof CATEGORIES.OUTER;
+@ChildEntity('OUTER')
+export class Outer extends Item implements OuterItem {
+    @Column({ comment : '아우터 카테고리', type : 'enum', enum : OuterCategory })
+    outerCategory: OuterCategory;
+
+    @Column({ comment : '아우터 사이즈' })
+    outerSize: string;
 }
 
-@ChildEntity('P')
-export class Pants extends Item {
-    @Column({ comment : '바지 카테고리', type : 'enum', enum : CATEGORIES.PANTS })
-    pantsCategory: typeof CATEGORIES.PANTS;
+@ChildEntity('PANTS')
+export class Pants extends Item implements PantsItem {
+    @Column({ comment : '바지 카테고리', type : 'enum', enum : PantsCategory })
+    pantsCategory: PantsCategory;
+
+    @Column({ comment : '하의 사이즈' })
+    pantsSize: number;
 }
 
-@ChildEntity('S')
-export class Shoes extends Item {
-    @Column({ comment : '신발 카테고리', type : 'enum', enum : CATEGORIES.SHOES })
-    shoesCategory: typeof CATEGORIES.SHOES;
+@ChildEntity('SHOES')
+export class Shoes extends Item implements ShoesItem {
+    @Column({ comment : '신발 카테고리', type : 'enum', enum : ShoesCategory })
+    shoesCategory: ShoesCategory;
+
+    @Column({ comment : '신발 사이즈' })
+    shoesSize: number;
+}
+
+interface TopItem {
+    topCategory: TopCategory;
+    topSize: string;
+}
+
+interface OuterItem {
+    outerCategory: OuterCategory;
+    outerSize: string;
+}
+
+interface PantsItem {
+    pantsCategory: PantsCategory;
+    pantsSize: number;
+}
+
+interface ShoesItem {
+    shoesCategory: ShoesCategory;
+    shoesSize: number;
 }
