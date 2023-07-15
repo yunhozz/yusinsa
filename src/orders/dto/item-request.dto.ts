@@ -1,5 +1,34 @@
 import { Gender } from '../order.enum';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+
+export class ItemRequestDto {
+    @IsEnum(Gender, { message : 'man, woman, unisex 중 하나여야 합니다.' })
+    @IsNotEmpty()
+    gender: Gender;
+
+    @IsString()
+    @IsNotEmpty()
+    name: string;
+
+    @IsString()
+    @IsNotEmpty()
+    size: string;
+
+    @IsNumber()
+    @Min(0, { message : '가격은 0원 이상이어야 합니다.' })
+    price: number;
+
+    @IsString()
+    @IsNotEmpty()
+    description: string;
+
+    @IsOptional()
+    image?: Buffer;
+
+    @IsNumber()
+    @Min(1, { message : '최소 수량은 1개입니다.' })
+    stockQuantity: number;
+}
 
 export class ItemQueryRequestDto {
     @IsNumber()
@@ -14,6 +43,7 @@ export class ItemQueryRequestDto {
     @IsOptional()
     keyword?: string;
 
+    @IsEnum(Gender, { message : 'man, woman, unisex 중 하나여야 합니다.' })
     @IsOptional()
     gender?: Gender;
 

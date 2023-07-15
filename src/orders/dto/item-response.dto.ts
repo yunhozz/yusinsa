@@ -24,12 +24,14 @@ export class ItemResponseDto {
 }
 
 export class ItemSimpleResponseDto {
+    code: string;
     gender: Gender;
     name: string;
     price: number;
     image: Buffer;
 
     constructor(item: Item) {
+        this.code = item.code;
         this.gender = item.gender;
         this.name = item.name;
         this.price = item.price;

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 import { OmitType } from '@nestjs/mapped-types';
 
 export class OrderItemRequestDto {
@@ -6,6 +6,7 @@ export class OrderItemRequestDto {
     @IsNotEmpty()
     itemCode: string;
 
+    @IsString()
     @IsNotEmpty()
     size: string;
 
@@ -15,7 +16,7 @@ export class OrderItemRequestDto {
 }
 
 export class OrderRequestDto {
-    @IsNotEmpty()
+    @IsArray()
     cart: CartItemRequestDto[];
 
     @IsString()
@@ -55,7 +56,7 @@ export class CartItemRequestDto {
     itemCode: string;
 
     @IsNumber()
-    @IsNotEmpty()
+    @Min(1, { message : '최소 수량은 1개입니다.' })
     count: number;
 
     constructor(orderCode: string, itemCode: string, count: number) {
