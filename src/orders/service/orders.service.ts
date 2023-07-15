@@ -6,7 +6,7 @@ import { Order } from '../entity/order.entity';
 import { OrderItemRepository } from '../repository/order-item.repository';
 import { ItemRepository } from '../repository/item.repository';
 import { OrderItem } from '../entity/order-item.entity';
-import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
+import { Item } from '../entity/item.entity';
 import { User } from '../../users/user.entity';
 import { UserRepository } from '../../users/user.repository';
 import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
@@ -27,7 +27,7 @@ export class OrdersService {
         @InjectRepository(OrderItem)
         private readonly orderItemRepository: OrderItemRepository,
         @InjectRepository(Item)
-        private readonly itemRepository: ItemRepository<Top | Outer | Pants | Shoes>
+        private readonly itemRepository: ItemRepository<Item>
     ) {}
 
     private readonly logger = new Logger(OrdersService.name);
@@ -79,7 +79,7 @@ export class OrdersService {
 
         for (const { orderItem, itemId } of map) {
             const item = await this.itemRepository.createQueryBuilder('item')
-                .select(['item.code', 'item.name', 'item.price', 'item.image'])
+                .select(['item.code', 'item.name', 'item.price', 'item.size', 'item.image'])
                 .where('item.id = :itemId', { itemId })
                 .getOneOrFail()
                 .catch(e => {
@@ -90,8 +90,7 @@ export class OrdersService {
                     }
                 });
 
-            // TODO : 상품 사이즈 구하기
-            const itemInfo = new ItemResponseDto(item, null);
+            const itemInfo = new ItemResponseDto(item);
             const orderItemResponseDto = new OrderItemResponseDto(orderItem, itemInfo);
             orderItemResponseDtoList.push(orderItemResponseDto);
         }

@@ -40,10 +40,10 @@ export class ItemResponseDto {
     size: string | number;
     price: number;
 
-    constructor(item: Item, size: string | number) {
+    constructor(item: Item) {
         this.code = item.code;
         this.name = item.name;
-        this.size = size;
+        this.size = item.size;
         this.price = item.price;
     }
 }

@@ -41,7 +41,7 @@ export class ItemsService {
             .andWhere(new Brackets(qb => {
                 if (keyword) {
                     qb.where('item.name = :name', { name : Like(`%${keyword}%`) })
-                        .orWhere('item.description = :description', { description : Like(`%${keyword}%`) })
+                        .orWhere('item.description = :description', { description : Like(`%${keyword}%`) });
                 }
                 const qGender = 'item.gender = :gender';
                 if (gender) {
@@ -82,7 +82,7 @@ export class ItemsService {
     }
 
     async addItem(dto: ItemRequestDto): Promise<string> {
-        const { name, categoryParent, categoryChild, size } = dto;
+        const { name, categoryParent, categoryChild } = dto;
         const exist = await this.itemRepository.exist({ where : { name } });
 
         if (exist) {
@@ -90,7 +90,7 @@ export class ItemsService {
         }
         const baseObj = { ...dto, ...{ code : uuid(), salesCount : 0 }};
         const categoryEnum = Categories[categoryParent];
-        let category, extraObj;
+        let category;
 
         switch (categoryEnum.valueOf()) {
             case TopCategory:
@@ -98,8 +98,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                extraObj = { topCategory : category, topSize : String(size) };
-                const top = this.topRepository.create({ ...baseObj, ...extraObj });
+                const top = this.topRepository.create({ ...baseObj, ...{ topCategory : category } });
                 await this.topRepository.save(top);
                 break;
             case OuterCategory:
@@ -107,8 +106,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                extraObj = { outerCategory : category, outerSize : String(size) };
-                const outer = this.outerRepository.create({ ...baseObj, ...extraObj });
+                const outer = this.outerRepository.create({ ...baseObj, ...{ outerCategory : category } });
                 await this.outerRepository.save(outer);
                 break;
             case PantsCategory:
@@ -116,8 +114,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                extraObj = { pantsCategory : category, pantsSize : Number(size) };
-                const pants = this.pantsRepository.create({ ...baseObj, ...extraObj });
+                const pants = this.pantsRepository.create({ ...baseObj, ...{ pantsCategory : category } });
                 await this.pantsRepository.save(pants);
                 break;
             case ShoesCategory:
@@ -125,8 +122,7 @@ export class ItemsService {
                 if (!category) {
                     throw new BadRequestException(`카테고리를 잘못 입력했습니다. 입력 : ${categoryChild}`);
                 }
-                extraObj = { shoesCategory : category, shoesSize : Number(size) };
-                const shoes = this.shoesRepository.create({ ...baseObj, ...extraObj });
+                const shoes = this.shoesRepository.create({ ...baseObj, ...{ shoesCategory : category } });
                 await this.shoesRepository.save(shoes);
                 break;
             default:

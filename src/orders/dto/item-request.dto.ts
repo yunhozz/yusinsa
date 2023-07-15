@@ -16,6 +16,10 @@ export class ItemRequestDto {
     @Min(0, { message: '가격은 0원 이상이어야 합니다.' })
     price: number;
 
+    @Validate((size: any): boolean => typeof size == 'string' || typeof size == 'number')
+    @IsNotEmpty()
+    size: string | number;
+
     @IsString()
     @IsNotEmpty()
     description: string;
@@ -34,10 +38,6 @@ export class ItemRequestDto {
     @IsString()
     @IsNotEmpty()
     categoryChild: string;
-
-    @Validate((size: any): boolean => typeof size == 'string' || typeof size == 'number')
-    @IsNotEmpty()
-    size: string | number;
 }
 
 export class ItemUpdateRequestDto extends PartialType(ItemRequestDto) {}
@@ -68,7 +68,7 @@ export class ItemQueryRequestDto {
     @IsOptional()
     maxPrice?: number;
 
-    @IsString()
+    @Validate((size: any): boolean => typeof size == 'string' || typeof size == 'number')
     @IsOptional()
-    size?: string;
+    size?: string | number;
 }
