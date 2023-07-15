@@ -4,7 +4,7 @@ import { OrdersService } from './service/orders.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entity/order.entity';
 import { OrderItem } from './entity/order-item.entity';
-import { Item } from './entity/item.entity';
+import { Item, Outer, Pants, Shoes, Top } from './entity/item.entity';
 import { Delivery } from './entity/delivery.entity';
 import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
 import { OrderRepository } from './repository/order.repository';
@@ -18,7 +18,7 @@ import { ItemsService } from './service/items.service';
 
 @Module({
     imports : [
-        TypeOrmModule.forFeature([Order, OrderItem, Item, Delivery, User]),
+        TypeOrmModule.forFeature([User, Order, OrderItem, Item, Top, Outer, Pants, Shoes, Delivery]),
         TypeOrmCustomModule.forCustomRepository([
             OrderRepository,
             OrderItemRepository,
