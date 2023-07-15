@@ -1,10 +1,9 @@
-import {Result} from "./result";
-import {HttpStatus} from "@nestjs/common";
-import {Success} from "./success";
-import {Failure} from "./failure";
+import { Result } from './result';
+import { HttpStatus } from '@nestjs/common';
+import { Success } from './success';
+import { Failure } from './failure';
 
 export class ApiResponse {
-
     success: boolean;
     status: HttpStatus;
     result: Result;

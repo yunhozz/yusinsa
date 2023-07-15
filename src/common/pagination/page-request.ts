@@ -1,7 +1,6 @@
-import {IsNumber, IsOptional} from "class-validator";
+import { IsNumber, IsOptional } from 'class-validator';
 
 export class PageRequest {
-
     @IsNumber()
     @IsOptional() // undefined 도 받을 수 있다.
     pageNo?: number | 1;
@@ -19,11 +18,9 @@ export class PageRequest {
         if (this.pageNo < 1 || this.pageNo === null || this.pageNo === undefined) {
             this.pageNo = 1;
         }
-
         if (this.pageSize < 1 || this.pageSize === null || this.pageSize === undefined) {
             this.pageSize = 10;
         }
-
         return (Number(this.pageNo) - 1) * Number(this.pageSize);
     }
 
@@ -31,7 +28,6 @@ export class PageRequest {
         if (this.pageSize < 1 || this.pageSize === null || this.pageSize === undefined) {
             this.pageSize = 10;
         }
-
         return Number(this.pageSize);
     }
 }

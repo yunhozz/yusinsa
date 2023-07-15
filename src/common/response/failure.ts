@@ -1,7 +1,6 @@
-import {Result} from "./result";
+import { Result } from './result';
 
 export class Failure implements Result {
-
     timestamp: Date;
     errMsg: string;
 

@@ -1,7 +1,6 @@
-import {Result} from "./result";
+import { Result } from './result';
 
 export class Success<T> implements Result {
-
     message: string;
     data?: T;
 
