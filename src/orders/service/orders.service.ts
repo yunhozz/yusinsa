@@ -15,7 +15,6 @@ import { PageRequest } from '../../common/pagination/page-request';
 import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
 import { OrderStatus } from '../order.enum';
 import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
-import { OrderItemMap } from '../../common/type/order-item-map.type';
 
 @Injectable()
 export class OrdersService {
@@ -229,4 +228,9 @@ export class OrdersService {
                 }
             });
     }
+}
+
+interface OrderItemMap {
+    orderItem: OrderItem;
+    itemId: bigint;
 }
