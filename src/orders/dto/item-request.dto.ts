@@ -1,5 +1,5 @@
 import { Gender } from '../order.enum';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min, Validate } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { Category } from '../../common/type/category.type';
 
