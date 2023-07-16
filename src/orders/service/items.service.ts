@@ -126,15 +126,17 @@ export class ItemsService {
     }
 
     // 상품 업데이트
-    async updateItem(itemCode: string, dto: ItemUpdateRequestDto): Promise<string> {
+    async updateItem(itemCode: string, dto: ItemUpdateRequestDto): Promise<ItemSimpleResponseDto> {
         const item = await this.findItemByCode(itemCode);
         await this.itemRepository.update({ id : item.id }, dto);
-        return item.code;
+        return new ItemSimpleResponseDto(item);
     }
 
-    // TODO : 특정 상품 삭제
+    // 상품 삭제
     async softDeleteItem(itemCode: string): Promise<string> {
-        return null;
+        const item = await this.findItemByCode(itemCode);
+        await this.itemRepository.softDelete({ id : item.id });
+        return item.code;
     }
 
     private async findItemByCode(code: string): Promise<Item> {
