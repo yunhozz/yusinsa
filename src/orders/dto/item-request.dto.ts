@@ -66,6 +66,7 @@ export class ItemQueryRequestDto {
 
     @IsNumber({ allowInfinity : false })
     @IsOptional()
+    @Min(0, { message : '최소 금액은 0원입니다.' })
     maxPrice?: number;
 
     @IsString()

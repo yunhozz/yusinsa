@@ -2,7 +2,7 @@ import { v1 as uuid } from 'uuid';
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ItemRepository } from '../repository/item.repository';
 import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
-import { Brackets, EntityNotFoundError, Like } from 'typeorm';
+import { Brackets, EntityNotFoundError } from 'typeorm';
 import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
 import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
 import { CATEGORIES, Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
@@ -40,29 +40,35 @@ export class ItemsService {
             }))
             .andWhere(new Brackets(qb => {
                 if (keyword) {
-                    qb.where('item.name = :name', { name : Like(`%${keyword}%`) })
-                        .orWhere('item.description = :description', { description : Like(`%${keyword}%`) });
+                    qb.where('item.name like :keyword', { keyword : `%${keyword}%` })
+                        .orWhere('item.description like :keyword', { keyword : `%${keyword}%` });
                 }
-                const qGender = 'item.gender = :gender';
+            }))
+            .andWhere(new Brackets(qb => {
+                const genderEq = 'item.gender = :gender';
                 if (gender) {
                     switch (gender) {
-                        case Gender.MAN: qb.andWhere(qGender, { gender : Gender.MAN }); break;
-                        case Gender.WOMAN: qb.andWhere(qGender, { gender : Gender.WOMAN }); break;
-                        default: qb.andWhere(qGender, { gender: Gender.UNISEX });
+                        case Gender.MAN: qb.where(genderEq, { gender : Gender.MAN }); break;
+                        case Gender.WOMAN: qb.where(genderEq, { gender : Gender.WOMAN }); break;
+                        default: qb.where(genderEq, { gender: Gender.UNISEX });
                     }
                 }
+            }))
+            .andWhere(new Brackets(qb => {
                 if (minPrice || maxPrice) {
                     if (minPrice && !maxPrice) {
-                        qb.andWhere('item.price >= :minPrice', { minPrice });
+                        qb.where('item.price >= :minPrice', { minPrice });
                     } else if (!minPrice && maxPrice) {
-                        qb.andWhere('item.price <= :maxPrice', { maxPrice });
+                        qb.where('item.price <= :maxPrice', { maxPrice });
                     } else {
-                        qb.andWhere('item.price >= :minPrice', { minPrice })
+                        qb.where('item.price >= :minPrice', { minPrice })
                             .andWhere('item.price <= :maxPrice', { maxPrice });
                     }
                 }
+            }))
+            .andWhere(new Brackets(qb => {
                 if (size) {
-                    qb.andWhere('item.size = :size', { size });
+                    qb.where('item.size = :size', { size });
                 }
             }))
             .offset(page.getOffset())
