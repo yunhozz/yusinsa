@@ -203,6 +203,6 @@ export class UsersController {
         await this.userService.deleteUserById(id);
         res.removeHeader('Authentication');
         res.clearCookie('jwt');
-        return ApiResponse.ok(HttpStatus.CREATED, '회원 탈퇴가 완료되었습니다.');
+        return ApiResponse.ok(HttpStatus.NO_CONTENT, '회원 탈퇴가 완료되었습니다.');
     }
 }
