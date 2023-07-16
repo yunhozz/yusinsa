@@ -47,7 +47,7 @@ export class UsersService {
         }
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(password, salt);
-        const user: User = await this.userRepository.create({
+        const user: User = this.userRepository.create({
             email,
             password : hashedPassword,
             name,

@@ -102,7 +102,7 @@ export class OrdersService {
         const { itemCode, count } = dto;
         const user = await this.userRepository.findOneBy({ id : userId });
         const item = await this.findItemByCode(itemCode);
-        const orderItem = await this.orderItemRepository.create({
+        const orderItem = this.orderItemRepository.create({
             order : null,
             item,
             orderCount : count
@@ -117,7 +117,7 @@ export class OrdersService {
         if (findOrder) {
             orderItem.order = findOrder;
         } else {
-            order = await this.orderRepository.create({
+            order = this.orderRepository.create({
                 user,
                 code : uuid(),
                 totalPrice : 0,
