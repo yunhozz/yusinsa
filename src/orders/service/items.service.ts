@@ -95,7 +95,8 @@ export class ItemsService {
         if (exist) {
             throw new BadRequestException(`해당 이름을 가진 상품이 이미 존재합니다. name : ${name}`);
         }
-        const baseObj = { ...dto, ...{ code : uuid(), salesCount : 0 }};
+        const extraObj: ItemExtraObject = { code : uuid(), salesCount : 0 };
+        const baseObj: ItemBaseObject = { ...dto, ...extraObj };
         const categoryEnum: CategoryEnum = CATEGORIES[categoryParent];
         const category = categoryEnum[categoryChild];
 
@@ -104,19 +105,23 @@ export class ItemsService {
         }
         switch (categoryEnum.valueOf()) {
             case TopCategory:
-                const top = this.topRepository.create({ ...baseObj, ...{ topCategory : category, size } });
+                const topObj: ItemObject = { ...baseObj, topCategory : category, size };
+                const top = this.topRepository.create(topObj);
                 await this.topRepository.save(top);
                 break;
             case OuterCategory:
-                const outer = this.outerRepository.create({ ...baseObj, ...{ outerCategory : category, size } });
+                const outerObj: ItemObject = { ...baseObj, outerCategory : category, size };
+                const outer = this.outerRepository.create(outerObj);
                 await this.outerRepository.save(outer);
                 break;
             case PantsCategory:
-                const pants = this.pantsRepository.create({ ...baseObj, ...{ pantsCategory : category, size } });
+                const pantsObj: ItemObject = { ...baseObj, pantsCategory : category, size };
+                const pants = this.pantsRepository.create(pantsObj);
                 await this.pantsRepository.save(pants);
                 break;
             case ShoesCategory:
-                const shoes = this.shoesRepository.create({ ...baseObj, ...{ shoesCategory : category, size } });
+                const shoesObj: ItemObject = { ...baseObj, shoesCategory : category, size };
+                const shoes = this.shoesRepository.create(shoesObj);
                 await this.shoesRepository.save(shoes);
                 break;
             default:
@@ -149,4 +154,29 @@ export class ItemsService {
                 }
             });
     }
+}
+
+interface ItemExtraObject {
+    code: string;
+    salesCount: number;
+}
+
+interface ItemBaseObject extends ItemExtraObject {
+    gender: Gender;
+    name: string;
+    price: number;
+    size: string;
+    description: string;
+    image?: Buffer;
+    stockQuantity: number;
+    categoryParent: Category;
+    categoryChild: string;
+}
+
+interface ItemObject extends ItemBaseObject {
+    topCategory?: TopCategory;
+    outerCategory?: OuterCategory;
+    pantsCategory?: PantsCategory;
+    shoesCategory?: ShoesCategory;
+    size: string;
 }
