@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../config/strategy/jwt.strategy';
 import { RedisCustomService } from './service/redis-custom.service';
+import { EmailService } from './service/email.service';
 
 const jwtConfig = config.get('jwt');
 
@@ -24,7 +25,7 @@ const jwtConfig = config.get('jwt');
         PassportModule.register({ defaultStrategy : 'jwt' })
     ],
     controllers : [UsersController],
-    providers : [UsersService, JwtStrategy, RedisCustomService],
+    providers : [UsersService, EmailService, RedisCustomService, JwtStrategy],
     exports : [JwtStrategy, PassportModule]
 })
 export class UsersModule {}

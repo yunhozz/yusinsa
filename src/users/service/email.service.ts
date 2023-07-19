@@ -1,10 +1,7 @@
 import * as config from 'config';
 import * as nodemailer from 'nodemailer';
-import Mail = require('nodemailer/lib/mailer');
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../user.entity';
-import { UserRepository } from '../user.repository';
+import Mail = require('nodemailer/lib/mailer');
 
 const mailConfig = config.get('mail');
 
@@ -12,10 +9,7 @@ const mailConfig = config.get('mail');
 export class EmailService {
     private mailTransporter: Mail;
 
-    constructor(
-        @InjectRepository(User)
-        private readonly userRepository: UserRepository
-    ) {
+    constructor() {
         this.mailTransporter = nodemailer.createTransport({
             service : mailConfig.service,
             auth : {
@@ -25,17 +19,38 @@ export class EmailService {
         });
     }
 
-    async sendJoinVerificationToGuest(email: string, verifyToken: string): Promise<any> {
+    async generateVerifyToken(): Promise<string> {
+        const token: string[] = [];
+        for (let i = 0; i < 6; i++) {
+            const rand = Math.floor(Math.random() * 3);
+            let t;
+
+            switch (rand) {
+                case 0:
+                    t = String.fromCharCode(Math.floor(Math.random() * 26) + 65);
+                    break;
+                case 1:
+                    t = String.fromCharCode(Math.floor(Math.random() * 26) + 97);
+                    break;
+                default:
+                    t = String(Math.floor(Math.random() * 10));
+            }
+            token[i] = t;
+        }
+        return token.join('');
+    }
+
+    async sendJoinVerificationToGuest(email: string, verifyToken: string): Promise<void> {
         const baseUrl = 'http://localhost:3000';
-        const url = `${baseUrl}/api/users/email-verify?token=${verifyToken}`;
+        const url = `${baseUrl}/api/users/email-verify?email=${email}&token=${verifyToken}`;
         const mailOptions: MailOptions = {
             to : email,
-            subject : '회원 인증 메일입니다.',
+            subject : '회원 가입 메일입니다.',
             html :
             `
-            회원 인증 버튼을 누르시면 인증이 완료됩니다.<br/>
-            <form action='${url}' method='post'>
-              <button>회원 인증</button>
+            회원 가입 버튼을 누르시면 가입이 완료됩니다.<br/>
+            <form action="${url}" method="post">
+              <button>회원 가입</button>
             </form>
             `
         };

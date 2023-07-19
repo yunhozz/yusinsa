@@ -33,11 +33,13 @@ import { CartResponseDto } from '../orders/dto/order-response.dto';
 import { RolesGuard } from '../config/guard/roles.guard';
 import { Role } from './user.enum';
 import { RedisCustomService } from './service/redis-custom.service';
+import { EmailService } from './service/email.service';
 
 @Controller('/api/users')
 export class UsersController {
     constructor(
         private readonly userService: UsersService,
+        private readonly emailService: EmailService,
         private readonly redisService: RedisCustomService
     ) {}
 
@@ -112,17 +114,33 @@ export class UsersController {
     }
 
     /**
-     * 회원가입
+     * 회원가입(guest) & 인증 이메일 발송
      * @param dto: CreateUserRequestDto
      */
     @Post('/join')
     @HttpCode(HttpStatus.CREATED)
-    async join(@Body(ValidationPipe) dto: CreateUserRequestDto): Promise<ApiResponse> {
-        const user = await this.userService.join(dto);
-        return ApiResponse.ok(HttpStatus.CREATED, '회원가입에 성공하였습니다.', {
-            id : user.id,
-            email : user.email
-        });
+    async joinToGuest(@Body(ValidationPipe) dto: CreateUserRequestDto): Promise<ApiResponse> {
+        const email = await this.userService.joinToGuest(dto);
+        const verifyToken = await this.emailService.generateVerifyToken();
+        await this.redisService.set(email, verifyToken);
+        await this.emailService.sendJoinVerificationToGuest(email, verifyToken);
+        return ApiResponse.ok(HttpStatus.CREATED, '회원 가입을 위해 이메일 인증을 완료해주세요.', email);
+    }
+
+    /**
+     * 이메일 토큰 인증
+     * @param email: string
+     * @param verifyToken: string
+     */
+    @Post('/email-verify')
+    @HttpCode(HttpStatus.CREATED)
+    async verifyUserJoining(@Query('email') email: string, @Query('token') verifyToken: string): Promise<ApiResponse> {
+        const redisToken = await this.redisService.get(email);
+        if (redisToken != verifyToken) {
+            return ApiResponse.fail(HttpStatus.UNAUTHORIZED, '인증 토큰이 잘못되었습니다.');
+        }
+        await this.userService.updateGuestToUser(email);
+        return ApiResponse.ok(HttpStatus.CREATED, '회원 가입이 완료되었습니다.');
     }
 
     /**
