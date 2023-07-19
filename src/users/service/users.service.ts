@@ -22,7 +22,6 @@ import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-respons
 import { TokenPayload } from '../../common/type/token-payload';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
-import { RedisCustomService } from './redis-custom.service';
 import { EntityNotFoundError } from 'typeorm';
 import { Role } from '../user.enum';
 import { User } from '../user.entity';
@@ -34,8 +33,7 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: UserRepository,
-        private readonly jwtService: JwtService,
-        private readonly redisService: RedisCustomService
+        private readonly jwtService: JwtService
     ) {}
 
     async join(dto: CreateUserRequestDto): Promise<User> {
@@ -107,11 +105,6 @@ export class UsersService {
         } else return null;
     }
 
-    async logout(id: bigint): Promise<void> {
-        const user = await this.findUserById(id);
-        await this.redisService.delete(user.email);
-    }
-
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
         const users = await this.userRepository.find({
             skip : page.getOffset(),
@@ -169,6 +162,7 @@ export class UsersService {
     private async generateJwtTokens(sub: bigint, username: string, roles: Role[]): Promise<JwtTokenResponseDto> {
         const payload: TokenPayload = { sub, username, roles };
         const secret = jwtConfig.secret;
+
         const accessToken = this.jwtService.sign(payload, {
             secret : secret,
             expiresIn : jwtConfig.accessToken.expiresIn
@@ -179,11 +173,7 @@ export class UsersService {
             expiresIn : jwtConfig.refreshToken.expiresIn
         });
 
-        const accessTokenExpiry = jwtConfig.accessToken.expiresIn; // 3600 sec (1h)
         const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)
-        await this.redisService.set(username, refreshToken, refreshTokenExpiry);
-
-        const date: Date = new Date(Date.now() + Number(new Date(accessTokenExpiry * 1000)));
-        return new JwtTokenResponseDto(accessToken, refreshToken, date);
+        return new JwtTokenResponseDto(sub, accessToken, refreshToken, refreshTokenExpiry);
     }
 }

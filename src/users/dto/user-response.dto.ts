@@ -2,7 +2,6 @@ import { Gender } from '../user.enum';
 import { User } from '../user.entity';
 
 export class UserProfileResponseDto {
-
     name: string;
     age: number;
     gender: Gender;
@@ -19,14 +18,15 @@ export class UserProfileResponseDto {
 }
 
 export class JwtTokenResponseDto {
-
+    sub: bigint;
     accessToken: string;
     refreshToken: string;
-    accessTokenExpiredDate: Date;
+    refreshTokenExpiry: number;
 
-    constructor(accessToken: string, refreshToken: string, accessTokenExpiredDate: Date) {
+    constructor(sub: bigint, accessToken: string, refreshToken: string, refreshTokenExpiry: number) {
+        this.sub = sub;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.accessTokenExpiredDate = accessTokenExpiredDate;
+        this.refreshTokenExpiry = refreshTokenExpiry;
     }
 }

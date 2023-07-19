@@ -15,7 +15,7 @@ import {
     ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './service/users.service';
-import { JwtTokenResponseDto, UserProfileResponseDto } from './dto/user-response.dto';
+import { UserProfileResponseDto } from './dto/user-response.dto';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
@@ -25,7 +25,6 @@ import {
 import { GetUser } from '../common/decorator/get-user.decorator';
 import { ApiResponse } from '../common/response/api-response';
 import { Request, Response } from 'express';
-import { Page } from '../common/pagination/page';
 import { PageRequest } from '../common/pagination/page-request';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../common/decorator/roles.decorator';
@@ -33,11 +32,14 @@ import { Cookie } from '../common/decorator/cookie.decorator';
 import { CartResponseDto } from '../orders/dto/order-response.dto';
 import { RolesGuard } from '../config/guard/roles.guard';
 import { Role } from './user.enum';
-import { User } from './user.entity';
+import { RedisCustomService } from './service/redis-custom.service';
 
 @Controller('/api/users')
 export class UsersController {
-    constructor(private readonly userService: UsersService) {}
+    constructor(
+        private readonly userService: UsersService,
+        private readonly redisService: RedisCustomService
+    ) {}
 
     /**
      * 내 정보 조회
@@ -61,8 +63,8 @@ export class UsersController {
     @Roles(Role.ADMIN)
     @HttpCode(HttpStatus.OK)
     async getAllUsersPage(@Query('page') pageNo?: number, @Query('size') pageSize?: number): Promise<ApiResponse> {
-        const page: PageRequest = new PageRequest(pageNo, pageSize);
-        const users: Page<User> = await this.userService.findAllUsersPage(page);
+        const page = new PageRequest(pageNo, pageSize);
+        const users = await this.userService.findAllUsersPage(page);
         return ApiResponse.ok(HttpStatus.OK, '유저 리스트 조회에 성공하였습니다.', users);
     }
 
@@ -72,15 +74,18 @@ export class UsersController {
      * @param res: Response
      */
     @Get('/reissue')
+    @UseGuards(AuthGuard())
     @HttpCode(HttpStatus.OK)
     async tokenReissue(@Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
         try {
             const token = req?.headers?.authorization;
-            const result: JwtTokenResponseDto = await this.userService.tokenReissue(token.split(' ')[1]);
+            const jwtTokenResponseDto = await this.userService.tokenReissue(token.split(' ')[1]);
 
-            if (result) {
+            if (jwtTokenResponseDto) {
                 // Send JWT access token to front-end with cookie
-                res.cookie('token', result.accessToken, {
+                const sub = req.user?.['sub'];
+                await this.redisService.set(sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
+                res.cookie('token', jwtTokenResponseDto.accessToken, {
                     path : '/',
                     httpOnly : true,
                     secure : true,
@@ -102,7 +107,7 @@ export class UsersController {
     @UseGuards(AuthGuard())
     @HttpCode(HttpStatus.OK)
     async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
-        const dto: UserProfileResponseDto = await this.userService.getUserProfileById(id);
+        const dto = await this.userService.getUserProfileById(id);
         return ApiResponse.ok(HttpStatus.OK, '유저 프로필 조회에 성공하였습니다.', dto);
     }
 
@@ -113,7 +118,7 @@ export class UsersController {
     @Post('/join')
     @HttpCode(HttpStatus.CREATED)
     async join(@Body(ValidationPipe) dto: CreateUserRequestDto): Promise<ApiResponse> {
-        const user: User = await this.userService.join(dto);
+        const user = await this.userService.join(dto);
         return ApiResponse.ok(HttpStatus.CREATED, '회원가입에 성공하였습니다.', {
             id : user.id,
             email : user.email
@@ -128,7 +133,8 @@ export class UsersController {
     @Post('/login')
     @HttpCode(HttpStatus.CREATED)
     async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
-        const jwtTokenResponseDto: JwtTokenResponseDto = await this.userService.login(dto);
+        const jwtTokenResponseDto = await this.userService.login(dto);
+        await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
         // Send JWT access token to front-end with cookie
         res.cookie('token', jwtTokenResponseDto.accessToken, {
             path : '/',
@@ -161,7 +167,7 @@ export class UsersController {
         if (cart) {
             res.clearCookie('cart', { path : '/' });
         }
-        await this.userService.logout(id);
+        await this.redisService.delete(id);
         return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');
     }
 
