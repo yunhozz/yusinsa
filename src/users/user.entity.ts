@@ -53,18 +53,6 @@ export class User extends BaseEntity {
     @DeleteDateColumn({ comment : '삭제 일자', nullable : true })
     deletedAt!: Date | null;
 
-    updatePassword(password: string): void {
-        this.password = password;
-    }
-
-    updateProfile(name: string, age: number, gender: Gender, address: Address, phoneNumber: number): void {
-        this.name = name;
-        this.age = age;
-        this.gender = gender;
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-    }
-
     getAddress(): string {
         const address = this.address;
         return `${address.si} ${address.gu} ${address.dong}`;
