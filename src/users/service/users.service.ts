@@ -36,7 +36,7 @@ export class UsersService {
         private readonly jwtService: JwtService
     ) {}
 
-    async join(dto: CreateUserRequestDto): Promise<User> {
+    async joinToGuest(dto: CreateUserRequestDto): Promise<string> {
         const { email, password, name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
         const found = await this.userRepository.exist({ where : { email } });
 
@@ -53,22 +53,22 @@ export class UsersService {
             gender,
             address : { si, gu, dong, etc },
             phoneNumber,
-            roles : [Role.USER]
+            roles : [Role.GUEST]
         });
 
-        return await this.userRepository.save(user);
+        await this.userRepository.save(user);
+        return user.email;
+    }
+
+    async updateGuestToUser(email: string): Promise<void> {
+        const user = await this.findUserByEmail(email);
+        const roles = user.roles.concat([Role.USER]);
+        await this.userRepository.update({ email }, { roles });
     }
 
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
-        const user = await this.userRepository.findOneByOrFail({ email })
-            .catch(e => {
-                if (e instanceof EntityNotFoundError) {
-                    throw new NotFoundException(`해당 이메일에 대한 유저를 찾을 수 없습니다. Email : ${email}`);
-                } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            });
+        const user = await this.findUserByEmail(email);
 
         if (user && await bcrypt.compare(password, user.password)) {
             return await this.generateJwtTokens(user.id, user.email, user.roles);
@@ -77,7 +77,6 @@ export class UsersService {
         }
     }
 
-    // 유저의 api 요청마다 쿠키에 있는 token 값으로 call
     async tokenReissue(token: string): Promise<JwtTokenResponseDto | null> {
         const decode = this.jwtService.decode(token);
         const now = new Date();
@@ -155,6 +154,17 @@ export class UsersService {
                     throw new NotFoundException(`유저를 찾을 수 없습니다.`);
                 } else {
                     throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
+    }
+
+    private async findUserByEmail(email: string): Promise<User> {
+        return await this.userRepository.findOneByOrFail({ email })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 이메일에 대한 유저를 찾을 수 없습니다. Email : ${email}`);
+                } else {
+                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
     }

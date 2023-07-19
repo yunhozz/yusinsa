@@ -19,7 +19,7 @@ export class RedisCustomService {
     }
 
     async set(key: any, value: string, ttl?: number): Promise<void> {
-        await this.redis.set(key, value, 'EX', ttl);
+        ttl ? await this.redis.set(key, value, 'EX', ttl) : await this.redis.set(key, value);
     }
 
     async delete(key: any): Promise<void> {
