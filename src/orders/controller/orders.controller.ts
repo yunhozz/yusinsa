@@ -14,21 +14,21 @@ import {
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
-import { OrdersService } from '../service/orders.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiResponse } from '../../common/response/api-response';
-import { GetUser } from '../../common/decorator/get-user.decorator';
 import { Response } from 'express';
-import { PageRequest } from '../../common/pagination/page-request';
-import { AddressRequestDto, CartItemRequestDto, OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
-import { OrderStatus } from '../order.enum';
 import { Cookie } from '../../common/decorator/cookie.decorator';
+import { GetUser } from '../../common/decorator/get-user.decorator';
+import { PageRequest } from '../../common/pagination/page-request';
+import { ApiResponse } from '../../common/response/api-response';
+import { AddressRequestDto, CartItemRequestDto, OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
 import { CartResponseDto } from '../dto/order-response.dto';
+import { OrderStatus } from '../order.enum';
+import { OrdersService } from '../service/orders.service';
 
 @Controller('/api/orders')
 @UseGuards(AuthGuard())
 export class OrdersController {
-    constructor(private readonly orderService: OrdersService) {}
+    constructor(private readonly orderService: OrdersService) { }
 
     /**
      * 주문 리스트 조회
@@ -89,7 +89,7 @@ export class OrdersController {
     async makeOrderByCart(
         @Body(ValidationPipe) dto: AddressRequestDto,
         @Cookie('cart') cart: CartResponseDto[],
-        @Res({ passthrough : true }) res: Response
+        @Res({ passthrough: true }) res: Response
     ): Promise<ApiResponse> {
         const cartItems: CartItemRequestDto[] = [];
         const { si, gu, dong, etc } = dto;
@@ -100,7 +100,7 @@ export class OrdersController {
         }
         const orderRequestDto = new OrderRequestDto(cartItems, si, gu, dong, etc);
         const orderCode = await this.orderService.makeOrderFromCartItems(orderRequestDto);
-        res.clearCookie('cart', { path : '/' });
+        res.clearCookie('cart', { path: '/' });
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니의 상품들을 성공적으로 주문하였습니다.', orderCode);
     }
 
@@ -117,7 +117,7 @@ export class OrdersController {
         @GetUser() userId: bigint,
         @Body(ValidationPipe) dto: OrderItemRequestDto,
         @Cookie('cart') cart: CartResponseDto[],
-        @Res({ passthrough : true }) res: Response
+        @Res({ passthrough: true }) res: Response
     ): Promise<ApiResponse> {
         const cartItem = await this.orderService.addOrderHistory(userId, dto);
         let value;
@@ -128,7 +128,7 @@ export class OrdersController {
         } else {
             value = [cartItem];
         }
-        res.cookie('cart', value, { path : '/', httpOnly : true });
+        res.cookie('cart', value, { path: '/', httpOnly: true });
         return ApiResponse.ok(HttpStatus.CREATED, '장바구니에 성공적으로 담았습니다.');
     }
 
@@ -143,14 +143,14 @@ export class OrdersController {
     async cancelItemOnCart(
         @Body(ValidationPipe) dto: CartItemRequestDto,
         @Cookie('cart') cart: CartResponseDto[],
-        @Res({ passthrough : true }) res: Response
+        @Res({ passthrough: true }) res: Response
     ): Promise<ApiResponse> {
         const { orderCode, itemCode, count } = dto;
         for (let i = 0; i < cart.length; i++) {
             if (cart[i].order == orderCode && cart[i].item == itemCode && cart[i].count == count) {
                 const code = await this.orderService.deleteOrderItemByCodeAndCount(orderCode, itemCode, count);
                 cart.splice(i, 1);
-                res.cookie('cart', cart, { path : '/', httpOnly : true });
+                res.cookie('cart', cart, { path: '/', httpOnly: true });
                 return ApiResponse.ok(HttpStatus.NO_CONTENT, `장바구니의 해당 상품을 성공적으로 취소하였습니다. item code : ${code}`);
             }
         }

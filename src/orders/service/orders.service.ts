@@ -1,20 +1,20 @@
-import { v1 as uuid } from 'uuid';
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { OrderRepository } from '../repository/order.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from '../entity/order.entity';
-import { OrderItemRepository } from '../repository/order-item.repository';
-import { ItemRepository } from '../repository/item.repository';
-import { OrderItem } from '../entity/order-item.entity';
-import { Item } from '../entity/item.entity';
-import { User } from '../../users/user.entity';
-import { UserRepository } from '../../users/user.repository';
 import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
+import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
+import { User } from '../../users/user.entity';
+import { UserRepository } from '../../users/user.repository';
 import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
-import { OrderStatus } from '../order.enum';
 import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
+import { Item } from '../entity/item.entity';
+import { OrderItem } from '../entity/order-item.entity';
+import { Order } from '../entity/order.entity';
+import { OrderStatus } from '../order.enum';
+import { ItemRepository } from '../repository/item.repository';
+import { OrderItemRepository } from '../repository/order-item.repository';
+import { OrderRepository } from '../repository/order.repository';
 
 @Injectable()
 export class OrdersService {
@@ -27,7 +27,7 @@ export class OrdersService {
         private readonly orderItemRepository: OrderItemRepository,
         @InjectRepository(Item)
         private readonly itemRepository: ItemRepository<Item>
-    ) {}
+    ) { }
 
     private readonly logger = new Logger(OrdersService.name);
 
@@ -41,7 +41,7 @@ export class OrdersService {
                 if (status != OrderStatus.WHOLE) {
                     qb.where('order.status = :status', { status });
                 }
-                qb.andWhere('order.status != :status', { status : OrderStatus.READY });
+                qb.andWhere('order.status != :status', { status: OrderStatus.READY });
             }))
             .offset(page.getOffset())
             .limit(page.getLimit())
@@ -73,7 +73,7 @@ export class OrdersService {
                 }
             });
 
-        const map: OrderItemMap[] = orderItems.map(oi => ({ orderItem : oi, itemId : oi.item.id }));
+        const map: OrderItemMap[] = orderItems.map(oi => ({ orderItem: oi, itemId: oi.item.id }));
         const orderItemResponseDtoList: OrderItemResponseDto[] = [];
 
         for (const { orderItem, itemId } of map) {
@@ -99,18 +99,18 @@ export class OrdersService {
     // 장바구니에 상품 추가
     async addOrderHistory(userId: bigint, dto: OrderItemRequestDto): Promise<CartResponseDto> {
         const { itemCode, count } = dto;
-        const user = await this.userRepository.findOneBy({ id : userId });
+        const user = await this.userRepository.findOneBy({ id: userId });
         const item = await this.findItemByCode(itemCode);
         const orderItem = this.orderItemRepository.create({
-            order : null,
+            order: null,
             item,
-            orderCount : count
+            orderCount: count
         });
 
         let order;
         const findOrder = await this.orderRepository.findOneBy({
-            user : Equal(user.id),
-            status : OrderStatus.READY
+            user: Equal(user.id),
+            status: OrderStatus.READY
         });
 
         if (findOrder) {
@@ -118,11 +118,11 @@ export class OrdersService {
         } else {
             order = this.orderRepository.create({
                 user,
-                code : uuid(),
-                totalPrice : 0,
-                address : {},
-                status : OrderStatus.READY,
-                orderItems : [orderItem]
+                code: uuid(),
+                totalPrice: 0,
+                address: {},
+                status: OrderStatus.READY,
+                orderItems: [orderItem]
             });
             orderItem.order = order;
             await this.orderRepository.save(order);
@@ -135,8 +135,8 @@ export class OrdersService {
     async makeOrderFromCartItems(dto: OrderRequestDto): Promise<string> {
         const { cart, si, gu, dong, etc } = dto;
         const order = await this.orderRepository.findOneByOrFail({
-            code : cart[0].orderCode,
-            status : OrderStatus.READY
+            code: cart[0].orderCode,
+            status: OrderStatus.READY
         }).catch(e => {
             if (e instanceof EntityNotFoundError) {
                 throw new NotFoundException(`장바구니가 비어있거나 해당 주문 건이 이미 진행되었습니다.`);
@@ -161,12 +161,12 @@ export class OrdersService {
             quantities.set(item.id, [salesCount, remainQuantity]);
         }
         for (const [itemId, arr] of quantities.entries()) {
-            await this.itemRepository.update({ id : itemId }, { salesCount : arr[0], stockQuantity : arr[1] });
+            await this.itemRepository.update({ id: itemId }, { salesCount: arr[0], stockQuantity: arr[1] });
         }
-        await this.orderRepository.update({ id : order.id }, {
-            totalPrice : resultPrice,
-            address : { si, gu, dong, etc },
-            status : OrderStatus.DONE
+        await this.orderRepository.update({ id: order.id }, {
+            totalPrice: resultPrice,
+            address: { si, gu, dong, etc },
+            status: OrderStatus.DONE
         });
         return order.code;
     }
@@ -175,15 +175,15 @@ export class OrdersService {
     async deleteOrderItemByCodeAndCount(orderCode: string, itemCode: string, count: number): Promise<string> {
         const order = await this.findOrderByCode(orderCode);
         const item = await this.findItemByCode(itemCode);
-        await this.orderItemRepository.softDelete({ order : Equal(order.id), item : Equal(item.id), orderCount : count });
+        await this.orderItemRepository.softDelete({ order: Equal(order.id), item: Equal(item.id), orderCount: count });
         return item.code;
     }
 
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
         const order = await this.orderRepository.findOneByOrFail({
-            code : orderCode,
-            status : Not(OrderStatus.COMPLETE)
+            code: orderCode,
+            status: Not(OrderStatus.COMPLETE)
         }).catch(e => {
             if (e instanceof EntityNotFoundError) {
                 throw new NotFoundException(`해당 주문건이 이미 진행 중입니다. Order Code : ${orderCode}`);
@@ -193,17 +193,17 @@ export class OrdersService {
         });
 
         const orderItems = await this.orderItemRepository.find({
-            relations : { order : true },
-            where : { order : Equal(order.id) }
+            relations: { order: true },
+            where: { order: Equal(order.id) }
         });
 
         for (const orderItem of orderItems) {
             const item = orderItem.item;
             const orderCount = orderItem.orderCount;
-            await this.itemRepository.update({ id : item.id }, { stockQuantity : item.stockQuantity + orderCount });
-            await this.orderItemRepository.softDelete({ id : orderItem.id });
+            await this.itemRepository.update({ id: item.id }, { stockQuantity: item.stockQuantity + orderCount });
+            await this.orderItemRepository.softDelete({ id: orderItem.id });
         }
-        await this.orderRepository.update({ id : order.id }, { status : OrderStatus.CANCEL });
+        await this.orderRepository.update({ id: order.id }, { status: OrderStatus.CANCEL });
         return order.code;
     }
 

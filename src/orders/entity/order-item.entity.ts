@@ -8,8 +8,8 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Order } from './order.entity';
 import { Item } from './item.entity';
+import { Order } from './order.entity';
 
 @Entity()
 export class OrderItem extends BaseEntity {
@@ -22,15 +22,15 @@ export class OrderItem extends BaseEntity {
     @ManyToOne(() => Item, item => item.orderItems)
     item: Item;
 
-    @Column({ comment : '주문 수량' })
+    @Column({ comment: '주문 수량' })
     orderCount: number;
 
-    @CreateDateColumn({ comment : '생성 일자' })
+    @CreateDateColumn({ comment: '생성 일자' })
     createdAt: Date;
 
-    @UpdateDateColumn({ comment : '수정 일자' })
+    @UpdateDateColumn({ comment: '수정 일자' })
     updatedAt: Date;
 
-    @DeleteDateColumn({ comment : '삭제 일자', nullable : true })
+    @DeleteDateColumn({ comment: '삭제 일자', nullable: true })
     deletedAt!: Date | null;
 }

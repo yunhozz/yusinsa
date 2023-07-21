@@ -1,5 +1,3 @@
-import * as config from 'config';
-import * as bcrypt from 'bcrypt';
 import {
     BadRequestException,
     ForbiddenException,
@@ -9,9 +7,14 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { UserRepository } from '../user.repository';
-import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import * as config from 'config';
+import { EntityNotFoundError } from 'typeorm';
+import { Page } from '../../common/pagination/page';
+import { PageRequest } from '../../common/pagination/page-request';
+import { TokenPayload } from '../../common/type/token-payload';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
@@ -19,12 +22,9 @@ import {
     UpdateProfileRequestDto,
 } from '../dto/user-request.dto';
 import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
-import { TokenPayload } from '../../common/type/token-payload';
-import { Page } from '../../common/pagination/page';
-import { PageRequest } from '../../common/pagination/page-request';
-import { EntityNotFoundError } from 'typeorm';
-import { Role } from '../user.enum';
 import { User } from '../user.entity';
+import { Role } from '../user.enum';
+import { UserRepository } from '../user.repository';
 
 const jwtConfig = config.get('jwt');
 
@@ -34,11 +34,11 @@ export class UsersService {
         @InjectRepository(User)
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService
-    ) {}
+    ) { }
 
     async joinToGuest(dto: CreateUserRequestDto): Promise<string> {
         const { email, password, name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
-        const found = await this.userRepository.exist({ where : { email } });
+        const found = await this.userRepository.exist({ where: { email } });
 
         if (found) {
             throw new BadRequestException(`중복되는 이메일이 존재합니다. Email : ${email}`);
@@ -47,13 +47,13 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(password, salt);
         const user: User = this.userRepository.create({
             email,
-            password : hashedPassword,
+            password: hashedPassword,
             name,
             age,
             gender,
-            address : { si, gu, dong, etc },
+            address: { si, gu, dong, etc },
             phoneNumber,
-            roles : [Role.GUEST]
+            roles: [Role.GUEST]
         });
 
         await this.userRepository.save(user);
@@ -106,8 +106,8 @@ export class UsersService {
 
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
         const users = await this.userRepository.find({
-            skip : page.getOffset(),
-            take : page.getLimit()
+            skip: page.getOffset(),
+            take: page.getLimit()
         });
 
         const totalCount = await this.userRepository.count();
@@ -133,18 +133,18 @@ export class UsersService {
         }
         const salt = await bcrypt.genSalt();
         const password = await bcrypt.hash(newPassword, salt);
-        await this.userRepository.update({ id : user.id }, { password });
+        await this.userRepository.update({ id: user.id }, { password });
     }
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
         const user = await this.findUserById(id);
-        await this.userRepository.update({ id : user.id }, dto);
+        await this.userRepository.update({ id: user.id }, dto);
         return new UserProfileResponseDto(user);
     }
 
     async deleteUserById(id: bigint): Promise<void> {
         const user = await this.findUserById(id);
-        await this.userRepository.softDelete({ id : user.id });
+        await this.userRepository.softDelete({ id: user.id });
     }
 
     private async findUserById(id: bigint): Promise<User> {
@@ -174,13 +174,13 @@ export class UsersService {
         const secret = jwtConfig.secret;
 
         const accessToken = this.jwtService.sign(payload, {
-            secret : secret,
-            expiresIn : jwtConfig.accessToken.expiresIn
+            secret: secret,
+            expiresIn: jwtConfig.accessToken.expiresIn
         });
 
         const refreshToken = this.jwtService.sign(payload, {
-            secret : secret,
-            expiresIn : jwtConfig.refreshToken.expiresIn
+            secret: secret,
+            expiresIn: jwtConfig.refreshToken.expiresIn
         });
 
         const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)

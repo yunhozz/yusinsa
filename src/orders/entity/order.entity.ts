@@ -9,10 +9,10 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { OrderItem } from './order-item.entity';
+import { Address } from '../../common/type/address.type';
 import { User } from '../../users/user.entity';
 import { OrderStatus } from '../order.enum';
-import { Address } from '../../common/type/address.type';
+import { OrderItem } from './order-item.entity';
 
 @Entity()
 export class Order extends BaseEntity {
@@ -22,27 +22,27 @@ export class Order extends BaseEntity {
     @ManyToOne(() => User, user => user.orders)
     user: User;
 
-    @Column({ comment : '주문 식별 코드 (uuid)' })
+    @Column({ comment: '주문 식별 코드 (uuid)' })
     code: string;
-    
-    @Column({ comment : '주문 총 가격' })
+
+    @Column({ comment: '주문 총 가격' })
     totalPrice: number;
 
-    @Column({ comment : '주문 주소', type : 'json' })
+    @Column({ comment: '주문 주소', type: 'json' })
     address: Address;
 
-    @Column({ comment : '주문 상태', type : 'enum', enum : OrderStatus })
+    @Column({ comment: '주문 상태', type: 'enum', enum: OrderStatus })
     status: OrderStatus;
 
     @OneToMany(() => OrderItem, orderItem => orderItem.order)
     orderItems: OrderItem[];
 
-    @CreateDateColumn({ comment : '생성 일자' })
+    @CreateDateColumn({ comment: '생성 일자' })
     createdAt: Date;
 
-    @UpdateDateColumn({ comment : '수정 일자' })
+    @UpdateDateColumn({ comment: '수정 일자' })
     updatedAt: Date;
 
-    @DeleteDateColumn({ comment : '삭제 일자', nullable : true })
+    @DeleteDateColumn({ comment: '삭제 일자', nullable: true })
     deletedAt!: Date | null;
 }

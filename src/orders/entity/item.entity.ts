@@ -10,88 +10,88 @@ import {
     TableInheritance,
     UpdateDateColumn,
 } from 'typeorm';
-import { OrderItem } from './order-item.entity';
 import { Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { OrderItem } from './order-item.entity';
 
 @Entity()
-@TableInheritance({ column : { type : 'varchar', name : 'type' } })
+@TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export class Item extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
 
-    @Column({ comment : '상품 식별 코드 (uuid)' })
+    @Column({ comment: '상품 식별 코드 (uuid)' })
     code: string;
 
-    @Column({ comment : '상품 성별', type : 'enum', enum : Gender })
+    @Column({ comment: '상품 성별', type: 'enum', enum: Gender })
     gender: Gender;
 
-    @Column({ comment : '상품 이름', unique : true })
+    @Column({ comment: '상품 이름', unique: true })
     name: string;
 
-    @Column({ comment : '상품 가격' })
+    @Column({ comment: '상품 가격' })
     price: number;
 
-    @Column({ comment : '상품 사이즈' })
+    @Column({ comment: '상품 사이즈' })
     size: string;
 
-    @Column({ comment : '상품 상세 설명', length : 2000 })
+    @Column({ comment: '상품 상세 설명', length: 2000 })
     description: string;
 
-    @Column({ comment : '상품 이미지', type : 'blob', nullable : true })
+    @Column({ comment: '상품 이미지', type: 'blob', nullable: true })
     image?: Buffer;
 
-    @Column({ comment : '상품 판매량' })
+    @Column({ comment: '상품 판매량' })
     salesCount: number;
 
-    @Column({ comment : '상품 재고' })
+    @Column({ comment: '상품 재고' })
     stockQuantity: number;
 
     @OneToMany(() => OrderItem, orderItems => orderItems.item)
     orderItems: OrderItem[];
 
-    @CreateDateColumn({ comment : '생성 일자' })
+    @CreateDateColumn({ comment: '생성 일자' })
     createdAt: Date;
 
-    @UpdateDateColumn({ comment : '수정 일자' })
+    @UpdateDateColumn({ comment: '수정 일자' })
     updatedAt: Date;
 
-    @DeleteDateColumn({ comment : '삭제 일자', nullable : true })
+    @DeleteDateColumn({ comment: '삭제 일자', nullable: true })
     deletedAt!: Date | null;
 }
 
 @ChildEntity('TOP')
 export class Top extends Item implements TopItem {
-    @Column({ comment : '상의 카테고리', type : 'enum', enum : TopCategory })
+    @Column({ comment: '상의 카테고리', type: 'enum', enum: TopCategory })
     topCategory: TopCategory;
 
-    @Column({ comment : '상의 사이즈' })
+    @Column({ comment: '상의 사이즈' })
     size: string;
 }
 
 @ChildEntity('OUTER')
 export class Outer extends Item implements OuterItem {
-    @Column({ comment : '아우터 카테고리', type : 'enum', enum : OuterCategory })
+    @Column({ comment: '아우터 카테고리', type: 'enum', enum: OuterCategory })
     outerCategory: OuterCategory;
 
-    @Column({ comment : '아우터 사이즈' })
+    @Column({ comment: '아우터 사이즈' })
     size: string;
 }
 
 @ChildEntity('PANTS')
 export class Pants extends Item implements PantsItem {
-    @Column({ comment : '하의 카테고리', type : 'enum', enum : PantsCategory })
+    @Column({ comment: '하의 카테고리', type: 'enum', enum: PantsCategory })
     pantsCategory: PantsCategory;
 
-    @Column({ comment : '하의 사이즈' })
+    @Column({ comment: '하의 사이즈' })
     size: string;
 }
 
 @ChildEntity('SHOES')
 export class Shoes extends Item implements ShoesItem {
-    @Column({ comment : '신발 카테고리', type : 'enum', enum : ShoesCategory })
+    @Column({ comment: '신발 카테고리', type: 'enum', enum: ShoesCategory })
     shoesCategory: ShoesCategory;
 
-    @Column({ comment : '신발 사이즈' })
+    @Column({ comment: '신발 사이즈' })
     size: string;
 }
 

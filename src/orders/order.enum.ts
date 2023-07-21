@@ -46,8 +46,8 @@ export enum OrderStatus {
 }
 
 export const CATEGORIES = {
-    TOP : TopCategory,
-    OUTER : OuterCategory,
-    PANTS : PantsCategory,
-    SHOES : ShoesCategory
+    TOP: TopCategory,
+    OUTER: OuterCategory,
+    PANTS: PantsCategory,
+    SHOES: ShoesCategory
 } as const;

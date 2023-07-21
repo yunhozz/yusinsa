@@ -1,15 +1,15 @@
-import { v1 as uuid } from 'uuid';
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { ItemRepository } from '../repository/item.repository';
-import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, EntityNotFoundError } from 'typeorm';
-import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
-import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
-import { CATEGORIES, Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Category, CategoryEnum } from '../../common/type/category.type';
+import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
+import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
+import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
+import { CATEGORIES, Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { ItemRepository } from '../repository/item.repository';
 
 @Injectable()
 export class ItemsService {
@@ -24,7 +24,7 @@ export class ItemsService {
         private readonly pantsRepository: ItemRepository<Pants>,
         @InjectRepository(Shoes)
         private readonly shoesRepository: ItemRepository<Shoes>
-    ) {}
+    ) { }
 
     // 검색 조건에 맞는 상품 페이지 조회
     async findItemsByQuery(query: ItemQueryRequestDto, category: Category): Promise<Page<ItemSimpleResponseDto>> {
@@ -40,16 +40,16 @@ export class ItemsService {
             }))
             .andWhere(new Brackets(qb => {
                 if (keyword) {
-                    qb.where('item.name like :keyword', { keyword : `%${keyword}%` })
-                        .orWhere('item.description like :keyword', { keyword : `%${keyword}%` });
+                    qb.where('item.name like :keyword', { keyword: `%${keyword}%` })
+                        .orWhere('item.description like :keyword', { keyword: `%${keyword}%` });
                 }
             }))
             .andWhere(new Brackets(qb => {
                 const genderEq = 'item.gender = :gender';
                 if (gender) {
                     switch (gender) {
-                        case Gender.MAN: qb.where(genderEq, { gender : Gender.MAN }); break;
-                        case Gender.WOMAN: qb.where(genderEq, { gender : Gender.WOMAN }); break;
+                        case Gender.MAN: qb.where(genderEq, { gender: Gender.MAN }); break;
+                        case Gender.WOMAN: qb.where(genderEq, { gender: Gender.WOMAN }); break;
                         default: qb.where(genderEq, { gender: Gender.UNISEX });
                     }
                 }
@@ -90,12 +90,12 @@ export class ItemsService {
     // 상품 추가
     async addItem(dto: ItemRequestDto): Promise<string> {
         const { name, size, categoryParent, categoryChild } = dto;
-        const exist = await this.itemRepository.exist({ where : { name } });
+        const exist = await this.itemRepository.exist({ where: { name } });
 
         if (exist) {
             throw new BadRequestException(`해당 이름을 가진 상품이 이미 존재합니다. name : ${name}`);
         }
-        const extraObj: ItemExtraObject = { code : uuid(), salesCount : 0 };
+        const extraObj: ItemExtraObject = { code: uuid(), salesCount: 0 };
         const baseObj: ItemBaseObject = { ...dto, ...extraObj };
         const categoryEnum: CategoryEnum = CATEGORIES[categoryParent];
         const category = categoryEnum[categoryChild];
@@ -105,22 +105,22 @@ export class ItemsService {
         }
         switch (categoryEnum.valueOf()) {
             case TopCategory:
-                const topObj: ItemObject = { ...baseObj, topCategory : category, size };
+                const topObj: ItemObject = { ...baseObj, topCategory: category, size };
                 const top = this.topRepository.create(topObj);
                 await this.topRepository.save(top);
                 break;
             case OuterCategory:
-                const outerObj: ItemObject = { ...baseObj, outerCategory : category, size };
+                const outerObj: ItemObject = { ...baseObj, outerCategory: category, size };
                 const outer = this.outerRepository.create(outerObj);
                 await this.outerRepository.save(outer);
                 break;
             case PantsCategory:
-                const pantsObj: ItemObject = { ...baseObj, pantsCategory : category, size };
+                const pantsObj: ItemObject = { ...baseObj, pantsCategory: category, size };
                 const pants = this.pantsRepository.create(pantsObj);
                 await this.pantsRepository.save(pants);
                 break;
             case ShoesCategory:
-                const shoesObj: ItemObject = { ...baseObj, shoesCategory : category, size };
+                const shoesObj: ItemObject = { ...baseObj, shoesCategory: category, size };
                 const shoes = this.shoesRepository.create(shoesObj);
                 await this.shoesRepository.save(shoes);
                 break;
@@ -133,14 +133,14 @@ export class ItemsService {
     // 상품 업데이트
     async updateItem(itemCode: string, dto: ItemUpdateRequestDto): Promise<ItemSimpleResponseDto> {
         const item = await this.findItemByCode(itemCode);
-        await this.itemRepository.update({ id : item.id }, dto);
+        await this.itemRepository.update({ id: item.id }, dto);
         return new ItemSimpleResponseDto(item);
     }
 
     // 상품 삭제
     async softDeleteItem(itemCode: string): Promise<string> {
         const item = await this.findItemByCode(itemCode);
-        await this.itemRepository.softDelete({ id : item.id });
+        await this.itemRepository.softDelete({ id: item.id });
         return item.code;
     }
 

@@ -1,3 +1,4 @@
+import { PartialType, PickType } from '@nestjs/mapped-types';
 import {
     IsEmail,
     IsEnum,
@@ -9,7 +10,6 @@ import {
     Matches,
     MaxLength,
 } from 'class-validator';
-import { PartialType, PickType } from '@nestjs/mapped-types';
 import { Gender } from '../user.enum';
 
 export class CreateUserRequestDto {
@@ -69,6 +69,6 @@ export class UpdatePasswordRequestDto {
     checkPassword: string;
 }
 
-export class UpdateProfileRequestDto extends PartialType(CreateUserRequestDto) {}
+export class UpdateProfileRequestDto extends PartialType(CreateUserRequestDto) { }
 
-export class LoginRequestDto extends PickType(CreateUserRequestDto, ['email', 'password']) {}
+export class LoginRequestDto extends PickType(CreateUserRequestDto, ['email', 'password']) { }

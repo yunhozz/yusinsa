@@ -1,1 +1,1 @@
-export interface Result {}
+export interface Result { }

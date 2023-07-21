@@ -1,7 +1,7 @@
-import { Gender } from '../order.enum';
-import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Category } from '../../common/type/category.type';
+import { Gender } from '../order.enum';
 
 export class ItemRequestDto {
     @IsEnum(Gender, { message: 'man, woman, unisex 중 하나여야 합니다.' })
@@ -40,7 +40,7 @@ export class ItemRequestDto {
     categoryChild: string;
 }
 
-export class ItemUpdateRequestDto extends PartialType(ItemRequestDto) {}
+export class ItemUpdateRequestDto extends PartialType(ItemRequestDto) { }
 
 export class ItemQueryRequestDto {
     @IsNumber()
@@ -55,18 +55,18 @@ export class ItemQueryRequestDto {
     @IsOptional()
     keyword?: string;
 
-    @IsEnum(Gender, { message : 'man, woman, unisex 중 하나여야 합니다.' })
+    @IsEnum(Gender, { message: 'man, woman, unisex 중 하나여야 합니다.' })
     @IsOptional()
     gender?: Gender;
 
     @IsNumber()
     @IsOptional()
-    @Min(0, { message : '최소 금액은 0원입니다.' })
+    @Min(0, { message: '최소 금액은 0원입니다.' })
     minPrice?: number;
 
-    @IsNumber({ allowInfinity : false })
+    @IsNumber({ allowInfinity: false })
     @IsOptional()
-    @Min(0, { message : '최소 금액은 0원입니다.' })
+    @Min(0, { message: '최소 금액은 0원입니다.' })
     maxPrice?: number;
 
     @IsString()

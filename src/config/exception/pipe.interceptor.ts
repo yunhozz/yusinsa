@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { catchError, Observable } from 'rxjs';
+import { Observable, catchError } from 'rxjs';
 
 @Injectable()
 export class PipeInterceptor implements NestInterceptor {

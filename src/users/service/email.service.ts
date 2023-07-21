@@ -1,6 +1,6 @@
+import { Injectable } from '@nestjs/common';
 import * as config from 'config';
 import * as nodemailer from 'nodemailer';
-import { Injectable } from '@nestjs/common';
 import Mail = require('nodemailer/lib/mailer');
 
 const mailConfig = config.get('mail');
@@ -11,10 +11,10 @@ export class EmailService {
 
     constructor() {
         this.mailTransporter = nodemailer.createTransport({
-            service : mailConfig.service,
-            auth : {
-                user : mailConfig.email,
-                pass : mailConfig.password
+            service: mailConfig.service,
+            auth: {
+                user: mailConfig.email,
+                pass: mailConfig.password
             }
         });
     }
@@ -44,10 +44,10 @@ export class EmailService {
         const baseUrl = 'http://localhost:3000';
         const url = `${baseUrl}/api/users/email-verify?email=${email}&token=${verifyToken}`;
         const mailOptions: MailOptions = {
-            to : email,
-            subject : '회원 가입 메일입니다.',
-            html :
-            `
+            to: email,
+            subject: '회원 가입 메일입니다.',
+            html:
+                `
             회원 가입 버튼을 누르시면 가입이 완료됩니다.<br/>
             <form action="${url}" method="post">
               <button>회원 가입</button>

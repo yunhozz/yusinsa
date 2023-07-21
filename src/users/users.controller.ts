@@ -14,26 +14,26 @@ import {
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
-import { UsersService } from './service/users.service';
-import { UserProfileResponseDto } from './dto/user-response.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
+import { Cookie } from '../common/decorator/cookie.decorator';
+import { GetUser } from '../common/decorator/get-user.decorator';
+import { Roles } from '../common/decorator/roles.decorator';
+import { PageRequest } from '../common/pagination/page-request';
+import { ApiResponse } from '../common/response/api-response';
+import { RolesGuard } from '../config/guard/roles.guard';
+import { CartResponseDto } from '../orders/dto/order-response.dto';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto,
 } from './dto/user-request.dto';
-import { GetUser } from '../common/decorator/get-user.decorator';
-import { ApiResponse } from '../common/response/api-response';
-import { Request, Response } from 'express';
-import { PageRequest } from '../common/pagination/page-request';
-import { AuthGuard } from '@nestjs/passport';
-import { Roles } from '../common/decorator/roles.decorator';
-import { Cookie } from '../common/decorator/cookie.decorator';
-import { CartResponseDto } from '../orders/dto/order-response.dto';
-import { RolesGuard } from '../config/guard/roles.guard';
-import { Role } from './user.enum';
-import { RedisCustomService } from './service/redis-custom.service';
+import { UserProfileResponseDto } from './dto/user-response.dto';
 import { EmailService } from './service/email.service';
+import { RedisCustomService } from './service/redis-custom.service';
+import { UsersService } from './service/users.service';
+import { Role } from './user.enum';
 
 @Controller('/api/users')
 export class UsersController {
@@ -41,7 +41,7 @@ export class UsersController {
         private readonly userService: UsersService,
         private readonly emailService: EmailService,
         private readonly redisService: RedisCustomService
-    ) {}
+    ) { }
 
     /**
      * 내 정보 조회
@@ -78,7 +78,7 @@ export class UsersController {
     @Get('/reissue')
     @UseGuards(AuthGuard())
     @HttpCode(HttpStatus.OK)
-    async tokenReissue(@Req() req: Request, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
+    async tokenReissue(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
         try {
             const token = req?.headers?.authorization;
             const jwtTokenResponseDto = await this.userService.tokenReissue(token.split(' ')[1]);
@@ -88,10 +88,10 @@ export class UsersController {
                 const sub = req.user?.['sub'];
                 await this.redisService.set(sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
                 res.cookie('token', jwtTokenResponseDto.accessToken, {
-                    path : '/',
-                    httpOnly : true,
-                    secure : true,
-                    maxAge : 180000 // 3 min
+                    path: '/',
+                    httpOnly: true,
+                    secure: true,
+                    maxAge: 180000 // 3 min
                 });
                 return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 재발행 되었습니다.');
             }
@@ -150,15 +150,15 @@ export class UsersController {
      */
     @Post('/login')
     @HttpCode(HttpStatus.CREATED)
-    async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough : true }) res: Response): Promise<ApiResponse> {
+    async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
         const jwtTokenResponseDto = await this.userService.login(dto);
         await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
         // Send JWT access token to front-end with cookie
         res.cookie('token', jwtTokenResponseDto.accessToken, {
-            path : '/',
-            httpOnly : true,
-            secure : true,
-            maxAge : 180000 // 3 min
+            path: '/',
+            httpOnly: true,
+            secure: true,
+            maxAge: 180000 // 3 min
         });
         return ApiResponse.ok(HttpStatus.CREATED, '로그인에 성공하였습니다.');
     }
@@ -177,13 +177,13 @@ export class UsersController {
         @GetUser() id: bigint,
         @Cookie('token') token: string,
         @Cookie('cart') cart: CartResponseDto[],
-        @Res({ passthrough : true }) res: Response
+        @Res({ passthrough: true }) res: Response
     ): Promise<ApiResponse> {
         if (token) {
-            res.clearCookie('token', { path : '/' });
+            res.clearCookie('token', { path: '/' });
         }
         if (cart) {
-            res.clearCookie('cart', { path : '/' });
+            res.clearCookie('cart', { path: '/' });
         }
         await this.redisService.delete(id);
         return ApiResponse.ok(HttpStatus.CREATED, '로그아웃에 성공하였습니다.');

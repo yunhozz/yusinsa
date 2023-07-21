@@ -3,4 +3,4 @@ import { CustomRepository } from '../common/decorator/custom-repository.decorato
 import { User } from './user.entity';
 
 @CustomRepository(User)
-export class UserRepository extends Repository<User> {}
+export class UserRepository extends Repository<User> { }

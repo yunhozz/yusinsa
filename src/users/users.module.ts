@@ -1,34 +1,34 @@
-import * as config from 'config';
 import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
-import { UsersService } from './service/users.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
-import { UserRepository } from './user.repository';
-import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as config from 'config';
 import { JwtStrategy } from '../config/strategy/jwt.strategy';
-import { RedisCustomService } from './service/redis-custom.service';
+import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
 import { EmailService } from './service/email.service';
+import { RedisCustomService } from './service/redis-custom.service';
+import { UsersService } from './service/users.service';
+import { User } from './user.entity';
+import { UserRepository } from './user.repository';
+import { UsersController } from './users.controller';
 
 const jwtConfig = config.get('jwt');
 
 @Module({
-    imports : [
+    imports: [
         TypeOrmModule.forFeature([User]),
         TypeOrmCustomModule.forCustomRepository([UserRepository]),
         JwtModule.register({
-            secret : process.env.JWT_SECRET || jwtConfig.secret,
-            signOptions : { expiresIn : jwtConfig.accessToken.expiresIn }
+            secret: process.env.JWT_SECRET || jwtConfig.secret,
+            signOptions: { expiresIn: jwtConfig.accessToken.expiresIn }
         }),
-        PassportModule.register({ defaultStrategy : 'jwt' })
+        PassportModule.register({ defaultStrategy: 'jwt' })
     ],
-    controllers : [UsersController],
-    providers : [UsersService, EmailService, RedisCustomService, JwtStrategy],
-    exports : [JwtStrategy, PassportModule]
+    controllers: [UsersController],
+    providers: [UsersService, EmailService, RedisCustomService, JwtStrategy],
+    exports: [JwtStrategy, PassportModule]
 })
-export class UsersModule {}
+export class UsersModule { }
 
 /**
  * <Module 속성>
