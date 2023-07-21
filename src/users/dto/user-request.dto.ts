@@ -1,3 +1,4 @@
+import { Gender } from '../user.enum';
 import { PartialType, PickType } from '@nestjs/mapped-types';
 import {
     IsEmail,
@@ -10,7 +11,6 @@ import {
     Matches,
     MaxLength,
 } from 'class-validator';
-import { Gender } from '../user.enum';
 
 export class CreateUserRequestDto {
 

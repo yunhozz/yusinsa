@@ -1,5 +1,5 @@
-import { User } from '../user.entity';
 import { Gender } from '../user.enum';
+import { User } from '../user.entity';
 
 export class UserProfileResponseDto {
     name: string;

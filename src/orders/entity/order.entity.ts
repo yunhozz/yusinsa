@@ -1,3 +1,7 @@
+import { Address } from '../../common/type/address.type';
+import { OrderItem } from './order-item.entity';
+import { OrderStatus } from '../order.enum';
+import { User } from '../../users/user.entity';
 import {
     BaseEntity,
     Column,
@@ -9,10 +13,6 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Address } from '../../common/type/address.type';
-import { User } from '../../users/user.entity';
-import { OrderStatus } from '../order.enum';
-import { OrderItem } from './order-item.entity';
 
 @Entity()
 export class Order extends BaseEntity {

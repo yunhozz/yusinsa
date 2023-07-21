@@ -1,3 +1,5 @@
+import { Item } from './item.entity';
+import { Order } from './order.entity';
 import {
     BaseEntity,
     Column,
@@ -8,8 +10,6 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Item } from './item.entity';
-import { Order } from './order.entity';
 
 @Entity()
 export class OrderItem extends BaseEntity {

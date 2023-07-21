@@ -1,6 +1,6 @@
-import { Repository } from 'typeorm';
 import { CustomRepository } from '../../common/decorator/custom-repository.decorator';
 import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
+import { Repository } from 'typeorm';
 
 @CustomRepository(Item)
 export class ItemRepository<T extends Item> extends Repository<T> { }

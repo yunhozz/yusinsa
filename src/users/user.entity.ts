@@ -1,3 +1,6 @@
+import { Address } from '../common/type/address.type';
+import { Gender, Role } from './user.enum';
+import { Order } from '../orders/entity/order.entity';
 import {
     BaseEntity,
     Column,
@@ -8,9 +11,6 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Address } from '../common/type/address.type';
-import { Order } from '../orders/entity/order.entity';
-import { Gender, Role } from './user.enum';
 
 @Entity()
 export class User extends BaseEntity {
@@ -38,8 +38,8 @@ export class User extends BaseEntity {
     @Column({ comment: '유저 핸드폰 번호' })
     phoneNumber: number;
 
-    @Column({ comment: '유저 권한 (ADMIN, USER)', type: 'enum', enum: Role })
-    roles: Role[];
+    @Column({ comment: '유저 권한 (ADMIN, USER, GUEST)', type: 'enum', enum: Role })
+    role: Role;
 
     @OneToMany(() => Order, order => order.user, { lazy: true })
     orders: Order[];

@@ -1,7 +1,7 @@
 import { Address } from '../../common/type/address.type';
 import { Item } from '../entity/item.entity';
-import { OrderItem } from '../entity/order-item.entity';
 import { Order } from '../entity/order.entity';
+import { OrderItem } from '../entity/order-item.entity';
 import { OrderStatus } from '../order.enum';
 
 export class OrderResponseDto {

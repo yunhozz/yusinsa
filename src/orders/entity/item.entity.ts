@@ -1,3 +1,5 @@
+import { Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { OrderItem } from './order-item.entity';
 import {
     BaseEntity,
     ChildEntity,
@@ -10,8 +12,6 @@ import {
     TableInheritance,
     UpdateDateColumn,
 } from 'typeorm';
-import { Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
-import { OrderItem } from './order-item.entity';
 
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })

@@ -1,3 +1,15 @@
+import * as bcrypt from 'bcrypt';
+import * as config from 'config';
+import { EntityNotFoundError } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
+import { Page } from '../../common/pagination/page';
+import { PageRequest } from '../../common/pagination/page-request';
+import { Role } from '../user.enum';
+import { TokenPayload } from '../../common/type/token-payload';
+import { User } from '../user.entity';
+import { UserRepository } from '../user.repository';
 import {
     BadRequestException,
     ForbiddenException,
@@ -7,24 +19,12 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import * as bcrypt from 'bcrypt';
-import * as config from 'config';
-import { EntityNotFoundError } from 'typeorm';
-import { Page } from '../../common/pagination/page';
-import { PageRequest } from '../../common/pagination/page-request';
-import { TokenPayload } from '../../common/type/token-payload';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto,
 } from '../dto/user-request.dto';
-import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
-import { User } from '../user.entity';
-import { Role } from '../user.enum';
-import { UserRepository } from '../user.repository';
 
 const jwtConfig = config.get('jwt');
 
@@ -53,7 +53,7 @@ export class UsersService {
             gender,
             address: { si, gu, dong, etc },
             phoneNumber,
-            roles: [Role.GUEST]
+            role: Role.GUEST
         });
 
         await this.userRepository.save(user);
@@ -62,8 +62,7 @@ export class UsersService {
 
     async updateGuestToUser(email: string): Promise<void> {
         const user = await this.findUserByEmail(email);
-        const roles = user.roles.concat([Role.USER]);
-        await this.userRepository.update({ email }, { roles });
+        await this.userRepository.update({ id: user.id }, { role: Role.USER });
     }
 
     async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
@@ -71,7 +70,7 @@ export class UsersService {
         const user = await this.findUserByEmail(email);
 
         if (user && await bcrypt.compare(password, user.password)) {
-            return await this.generateJwtTokens(user.id, user.email, user.roles);
+            return await this.generateJwtTokens(user.id, user.email, user.role);
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
         }
@@ -169,8 +168,8 @@ export class UsersService {
             });
     }
 
-    private async generateJwtTokens(sub: bigint, username: string, roles: Role[]): Promise<JwtTokenResponseDto> {
-        const payload: TokenPayload = { sub, username, roles };
+    private async generateJwtTokens(sub: bigint, username: string, role: Role): Promise<JwtTokenResponseDto> {
+        const payload: TokenPayload = { sub, username, role };
         const secret = jwtConfig.secret;
 
         const accessToken = this.jwtService.sign(payload, {

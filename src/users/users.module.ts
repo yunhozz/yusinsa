@@ -1,16 +1,16 @@
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import * as config from 'config';
-import { JwtStrategy } from '../config/strategy/jwt.strategy';
-import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
 import { EmailService } from './service/email.service';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from '../config/strategy/jwt.strategy';
+import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
 import { RedisCustomService } from './service/redis-custom.service';
-import { UsersService } from './service/users.service';
+import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
 import { UsersController } from './users.controller';
+import { UsersService } from './service/users.service';
 
 const jwtConfig = config.get('jwt');
 

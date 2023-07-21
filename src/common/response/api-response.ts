@@ -1,5 +1,5 @@
-import { HttpStatus } from '@nestjs/common';
 import { Failure } from './failure';
+import { HttpStatus } from '@nestjs/common';
 import { Result } from './result';
 import { Success } from './success';
 

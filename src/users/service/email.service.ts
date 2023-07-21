@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import * as config from 'config';
 import * as nodemailer from 'nodemailer';
+import { Injectable } from '@nestjs/common';
 import Mail = require('nodemailer/lib/mailer');
 
 const mailConfig = config.get('mail');
