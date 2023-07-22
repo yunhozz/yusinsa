@@ -3,8 +3,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import { TokenPayload } from '../../common/type/token-payload';
 import { UserRepository } from '../../users/user.repository';
+import { Role } from '../../users/user.enum';
 
 const jwtConfig = config.get('jwt');
 
@@ -35,4 +35,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
             role: user.role
         };
     }
+}
+
+export interface TokenPayload {
+    sub: bigint,
+    username: string;
+    role: Role;
 }

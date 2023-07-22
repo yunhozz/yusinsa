@@ -7,8 +7,6 @@ const mailConfig = config.get('mail');
 
 @Injectable()
 export class EmailService {
-    private mailTransporter: Mail;
-
     constructor() {
         this.mailTransporter = nodemailer.createTransport({
             service: mailConfig.service,
@@ -18,6 +16,8 @@ export class EmailService {
             }
         });
     }
+
+    private readonly mailTransporter: Mail;
 
     async generateVerifyToken(): Promise<string> {
         const token: string[] = [];
