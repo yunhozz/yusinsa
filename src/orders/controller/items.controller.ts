@@ -57,7 +57,7 @@ export class ItemsController {
         return ApiResponse.ok(HttpStatus.CREATED, '해당 상품을 성공적으로 업데이트 하였습니다.', itemInfo);
     }
 
-    @Patch(':/code')
+    @Patch('/:code')
     @HttpCode(HttpStatus.CREATED)
     async deleteItemByCode(@Param('code') itemCode: string): Promise<ApiResponse> {
         const code = await this.itemService.softDeleteItem(itemCode);
