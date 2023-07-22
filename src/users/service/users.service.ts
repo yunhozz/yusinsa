@@ -105,6 +105,7 @@ export class UsersService {
 
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
         const users = await this.userRepository.find({
+            select: ['email', 'name', 'gender', 'address', 'phoneNumber', 'role', 'updatedAt'],
             skip: page.getOffset(),
             take: page.getLimit()
         });
