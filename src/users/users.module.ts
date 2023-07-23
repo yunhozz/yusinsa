@@ -26,9 +26,9 @@ const jwtConfig = config.get('jwt');
         }),
         PassportModule.register({ defaultStrategy: 'jwt' })
     ],
-    controllers: [UsersController],
-    providers: [UsersService, EmailService, RedisCustomService, JwtStrategy],
-    exports: [JwtStrategy, PassportModule]
+    controllers: [UsersController, GoogleAuthController],
+    providers: [UsersService, EmailService, RedisCustomService, JwtStrategy, JwtGoogleStrategy],
+    exports: [PassportModule, JwtStrategy, JwtGoogleStrategy]
 })
 export class UsersModule { }
 

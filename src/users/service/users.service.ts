@@ -78,6 +78,22 @@ export class UsersService {
         }
     }
 
+    async loginByGoogle(googleUser: GoogleUser): Promise<JwtTokenResponseDto> {
+        const { email, firstName, lastName } = googleUser;
+        const name = firstName + lastName;
+        let localUser = await this.localUserRepository.findOneBy({ email });
+        let user;
+
+        if (localUser) {
+            await this.userRepository.update({ id: localUser.id }, { name, provider: Provider.GOOGLE, role: Role.USER });
+            user = localUser;
+        } else {
+            user = this.userRepository.create({ email, name, provider: Provider.GOOGLE, role: Role.USER });
+            await this.userRepository.save(user);
+        }
+        return this.generateJwtTokens(user.id, user.email, user.role);
+    }
+
     async tokenReissue(token: string): Promise<JwtTokenResponseDto | null> {
         const decode = this.jwtService.decode(token);
         const now = new Date();
