@@ -1,6 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import * as config from 'config';
 import * as nodemailer from 'nodemailer';
-import { Injectable } from '@nestjs/common';
+import { MailOptions } from '../user.interface';
 import Mail = require('nodemailer/lib/mailer');
 
 const mailConfig = config.get('mail');
@@ -57,10 +58,4 @@ export class EmailService {
 
         await this.mailTransporter.sendMail(mailOptions);
     }
-}
-
-interface MailOptions {
-    to: string;
-    subject: string;
-    html: string;
 }

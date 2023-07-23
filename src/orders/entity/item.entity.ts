@@ -1,5 +1,3 @@
-import { Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
-import { OrderItem } from './order-item.entity';
 import {
     BaseEntity,
     ChildEntity,
@@ -12,6 +10,9 @@ import {
     TableInheritance,
     UpdateDateColumn,
 } from 'typeorm';
+import { Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { OuterItem, PantsItem, ShoesItem, TopItem } from '../order.interface';
+import { OrderItem } from './order-item.entity';
 
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
@@ -92,25 +93,5 @@ export class Shoes extends Item implements ShoesItem {
     shoesCategory: ShoesCategory;
 
     @Column({ comment: '신발 사이즈' })
-    size: string;
-}
-
-interface TopItem {
-    topCategory: TopCategory;
-    size: string;
-}
-
-interface OuterItem {
-    outerCategory: OuterCategory;
-    size: string;
-}
-
-interface PantsItem {
-    pantsCategory: PantsCategory;
-    size: string;
-}
-
-interface ShoesItem {
-    shoesCategory: ShoesCategory;
     size: string;
 }

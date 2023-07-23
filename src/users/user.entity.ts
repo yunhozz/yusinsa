@@ -1,6 +1,3 @@
-import { Address } from '../common/type/address.type';
-import { Gender, Role } from './user.enum';
-import { Order } from '../orders/entity/order.entity';
 import {
     BaseEntity,
     Column,
@@ -11,6 +8,9 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { Order } from '../orders/entity/order.entity';
+import { Gender, Provider, Role } from './user.enum';
+import { Address } from './user.interface';
 
 @Entity()
 export class User extends BaseEntity {
@@ -55,6 +55,6 @@ export class User extends BaseEntity {
 
     getAddress(): string {
         const address = this.address;
-        return `${address.si} ${address.gu} ${address.dong}`;
+        return `${address.si} ${address.gu} ${address.dong} ${address.etc}`;
     }
 }

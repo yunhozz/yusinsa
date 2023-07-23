@@ -1,27 +1,21 @@
-import {
-    BadRequestException,
-    HttpException,
-    HttpStatus,
-    Injectable,
-    Logger,
-    NotFoundException
-} from '@nestjs/common';
-import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
-import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Item } from '../entity/item.entity';
-import { ItemRepository } from '../repository/item.repository';
-import { Order } from '../entity/order.entity';
-import { OrderItem } from '../entity/order-item.entity';
-import { OrderItemRepository } from '../repository/order-item.repository';
-import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
-import { OrderRepository } from '../repository/order.repository';
-import { OrderStatus } from '../order.enum';
+import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
+import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
 import { User } from '../../users/user.entity';
 import { UserRepository } from '../../users/user.repository';
-import { v1 as uuid } from 'uuid';
+import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
+import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
+import { Item } from '../entity/item.entity';
+import { OrderItem } from '../entity/order-item.entity';
+import { Order } from '../entity/order.entity';
+import { OrderStatus } from '../order.enum';
+import { OrderItemMap } from '../order.interface';
+import { ItemRepository } from '../repository/item.repository';
+import { OrderItemRepository } from '../repository/order-item.repository';
+import { OrderRepository } from '../repository/order.repository';
 
 @Injectable()
 export class OrdersService {
@@ -235,9 +229,4 @@ export class OrdersService {
                 }
             });
     }
-}
-
-interface OrderItemMap {
-    orderItem: OrderItem;
-    itemId: bigint;
 }

@@ -1,14 +1,7 @@
-import { Category } from '../../common/type/category.type';
-import { Gender } from '../order.enum';
-import {
-    IsEnum,
-    IsNotEmpty,
-    IsNumber,
-    IsOptional,
-    IsString,
-    Min
-} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Gender } from '../order.enum';
+import { Category } from '../order.interface';
 
 export class ItemRequestDto {
     @IsEnum(Gender, { message: 'man, woman, unisex 중 하나여야 합니다.' })

@@ -1,17 +1,3 @@
-import { ApiResponse } from '../common/response/api-response';
-import { AuthGuard } from '@nestjs/passport';
-import { CartResponseDto } from '../orders/dto/order-response.dto';
-import { Cookie } from '../common/decorator/cookie.decorator';
-import { EmailService } from './service/email.service';
-import { GetUser } from '../common/decorator/get-user.decorator';
-import { PageRequest } from '../common/pagination/page-request';
-import { RedisCustomService } from './service/redis-custom.service';
-import { Request, Response } from 'express';
-import { Role } from './user.enum';
-import { Roles } from '../common/decorator/roles.decorator';
-import { RolesGuard } from '../config/guard/roles.guard';
-import { UserProfileResponseDto } from './dto/user-response.dto';
-import { UsersService } from './service/users.service';
 import {
     Body,
     Controller,
@@ -28,12 +14,26 @@ import {
     UseGuards,
     ValidationPipe,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
+import { Cookie } from '../../common/decorator/cookie.decorator';
+import { GetUser } from '../../common/decorator/get-user.decorator';
+import { Roles } from '../../common/decorator/roles.decorator';
+import { PageRequest } from '../../common/pagination/page-request';
+import { ApiResponse } from '../../common/response/api-response';
+import { RolesGuard } from '../../config/guard/roles.guard';
+import { CartResponseDto } from '../../orders/dto/order-response.dto';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto,
-} from './dto/user-request.dto';
+} from '../dto/user-request.dto';
+import { UserProfileResponseDto } from '../dto/user-response.dto';
+import { EmailService } from '../service/email.service';
+import { RedisCustomService } from '../service/redis-custom.service';
+import { UsersService } from '../service/users.service';
+import { Role } from '../user.enum';
 
 @Controller('/api/users')
 export class UsersController {

@@ -1,22 +1,15 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { Brackets, EntityNotFoundError } from 'typeorm';
-import {
-    CATEGORIES,
-    Gender,
-    OuterCategory,
-    PantsCategory,
-    ShoesCategory,
-    TopCategory
-} from '../order.enum';
-import { Category, CategoryEnum } from '../../common/type/category.type';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
-import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
-import { ItemRepository } from '../repository/item.repository';
-import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
+import { Brackets, EntityNotFoundError } from 'typeorm';
+import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
-import { v1 as uuid } from 'uuid';
+import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
+import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
+import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
+import { CATEGORIES, Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { Category, CategoryEnum, ItemBaseObject, ItemExtraObject, ItemObject } from '../order.interface';
+import { ItemRepository } from '../repository/item.repository';
 
 @Injectable()
 export class ItemsService {
@@ -161,29 +154,4 @@ export class ItemsService {
                 }
             });
     }
-}
-
-interface ItemExtraObject {
-    code: string;
-    salesCount: number;
-}
-
-interface ItemBaseObject extends ItemExtraObject {
-    gender: Gender;
-    name: string;
-    price: number;
-    size: string;
-    description: string;
-    image?: Buffer;
-    stockQuantity: number;
-    categoryParent: Category;
-    categoryChild: string;
-}
-
-interface ItemObject extends ItemBaseObject {
-    topCategory?: TopCategory;
-    outerCategory?: OuterCategory;
-    pantsCategory?: PantsCategory;
-    shoesCategory?: ShoesCategory;
-    size: string;
 }
