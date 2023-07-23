@@ -151,7 +151,7 @@ export class UsersController {
     @Post('/login')
     @HttpCode(HttpStatus.CREATED)
     async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
-        const jwtTokenResponseDto = await this.userService.login(dto);
+        const jwtTokenResponseDto = await this.userService.loginById(dto);
         await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
         // Send JWT access token to front-end with cookie
         res.cookie('token', jwtTokenResponseDto.accessToken, {

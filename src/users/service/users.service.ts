@@ -1,15 +1,3 @@
-import * as bcrypt from 'bcrypt';
-import * as config from 'config';
-import { EntityNotFoundError } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
-import { Page } from '../../common/pagination/page';
-import { PageRequest } from '../../common/pagination/page-request';
-import { Role } from '../user.enum';
-import { TokenPayload } from '../../common/type/token-payload';
-import { User } from '../user.entity';
-import { UserRepository } from '../user.repository';
 import {
     BadRequestException,
     ForbiddenException,
@@ -19,12 +7,24 @@ import {
     NotFoundException,
     UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import * as config from 'config';
+import { EntityNotFoundError } from 'typeorm';
+import { Page } from '../../common/pagination/page';
+import { PageRequest } from '../../common/pagination/page-request';
 import {
     CreateUserRequestDto,
     LoginRequestDto,
     UpdatePasswordRequestDto,
     UpdateProfileRequestDto,
 } from '../dto/user-request.dto';
+import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
+import { LocalUser, User } from '../user.entity';
+import { Provider, Role } from '../user.enum';
+import { GoogleUser, TokenPayload } from '../user.interface';
+import { LocalUserRepository, UserRepository } from '../user.repository';
 
 const jwtConfig = config.get('jwt');
 
@@ -33,6 +33,8 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: UserRepository,
+        @InjectRepository(LocalUser)
+        private readonly localUserRepository: LocalUserRepository,
         private readonly jwtService: JwtService
     ) { }
 
@@ -45,19 +47,19 @@ export class UsersService {
         }
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(password, salt);
-        const user: User = this.userRepository.create({
+        const localUser = this.localUserRepository.create({
             email,
-            password: hashedPassword,
             name,
+            provider: Provider.LOCAL,
+            password: hashedPassword,
             age,
             gender,
             address: { si, gu, dong, etc },
-            phoneNumber,
-            role: Role.GUEST
+            phoneNumber
         });
 
-        await this.userRepository.save(user);
-        return user.email;
+        await this.localUserRepository.save(localUser);
+        return localUser.email;
     }
 
     async updateGuestToUser(email: string): Promise<void> {
@@ -65,11 +67,11 @@ export class UsersService {
         await this.userRepository.update({ id: user.id }, { role: Role.USER });
     }
 
-    async login(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
+    async loginById(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
         const user = await this.findUserByEmail(email);
 
-        if (user && await bcrypt.compare(password, user.password)) {
+        if (user && await bcrypt.compare(password, user['password'])) {
             return await this.generateJwtTokens(user.id, user.email, user.role);
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
@@ -105,7 +107,7 @@ export class UsersService {
 
     async findAllUsersPage(page: PageRequest): Promise<Page<User>> {
         const users = await this.userRepository.find({
-            select: ['email', 'name', 'gender', 'address', 'phoneNumber', 'role', 'updatedAt'],
+            select: ['email', 'name', 'provider', 'role', 'updatedAt'],
             skip: page.getOffset(),
             take: page.getLimit()
         });
@@ -125,7 +127,7 @@ export class UsersService {
         const { oldPassword, newPassword, checkPassword } = dto;
         const user = await this.findUserById(id);
 
-        if (!await bcrypt.compare(oldPassword, user.password)) {
+        if (!await bcrypt.compare(oldPassword, user['password'])) {
             throw new BadRequestException('기존 비밀번호와 다릅니다.');
         }
         if (newPassword !== checkPassword) {
@@ -133,12 +135,12 @@ export class UsersService {
         }
         const salt = await bcrypt.genSalt();
         const password = await bcrypt.hash(newPassword, salt);
-        await this.userRepository.update({ id: user.id }, { password });
+        await this.localUserRepository.update({ id: user.id }, { password });
     }
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
         const user = await this.findUserById(id);
-        await this.userRepository.update({ id: user.id }, dto);
+        await this.localUserRepository.update({ id: user.id }, dto);
         return new UserProfileResponseDto(user);
     }
 
