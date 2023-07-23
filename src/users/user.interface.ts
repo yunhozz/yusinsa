@@ -1,4 +1,13 @@
-import { Role } from './user.enum';
+import { Gender, Role } from './user.enum';
+
+export interface LocalUserInfo {
+    password: string;
+    age: number;
+    gender: Gender;
+    address: Address;
+    phoneNumber: number;
+    getAddress(): string;
+}
 
 export interface Address {
     si: string;

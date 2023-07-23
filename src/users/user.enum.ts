@@ -8,3 +8,9 @@ export enum Role {
     USER = 'user',
     GUEST = 'guest'
 }
+
+export enum Provider {
+    LOCAL = 'local',
+    GOOGLE = 'google',
+    KAKAO = 'kakao'
+}

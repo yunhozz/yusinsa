@@ -1,23 +1,25 @@
-import * as config from 'config';
-import { EmailService } from './service/email.service';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from '../config/strategy/jwt.strategy';
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { RedisCustomService } from './service/redis-custom.service';
-import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { UserRepository } from './user.repository';
-import { UsersController } from './users.controller';
+import * as config from 'config';
+import { JwtGoogleStrategy } from '../config/strategy/jwt-google.strategy';
+import { JwtStrategy } from '../config/strategy/jwt.strategy';
+import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
+import { GoogleAuthController } from './controller/google-auth.controller';
+import { UsersController } from './controller/users.controller';
+import { EmailService } from './service/email.service';
+import { RedisCustomService } from './service/redis-custom.service';
 import { UsersService } from './service/users.service';
+import { LocalUser, User } from './user.entity';
+import { LocalUserRepository, UserRepository } from './user.repository';
 
 const jwtConfig = config.get('jwt');
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User]),
-        TypeOrmCustomModule.forCustomRepository([UserRepository]),
+        TypeOrmModule.forFeature([User, LocalUser]),
+        TypeOrmCustomModule.forCustomRepository([UserRepository, LocalUserRepository]),
         JwtModule.register({
             secret: process.env.JWT_SECRET || jwtConfig.secret,
             signOptions: { expiresIn: jwtConfig.accessToken.expiresIn }
