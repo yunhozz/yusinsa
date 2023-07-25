@@ -4,9 +4,10 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as config from 'config';
 import { JwtGoogleStrategy } from '../config/strategy/jwt-google.strategy';
+import { JwtKakaoStrategy } from '../config/strategy/jwt-kakao.strategy';
 import { JwtStrategy } from '../config/strategy/jwt.strategy';
 import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
-import { GoogleAuthController } from './controller/google-auth.controller';
+import { AuthController } from './controller/auth.controller';
 import { UsersController } from './controller/users.controller';
 import { EmailService } from './service/email.service';
 import { RedisCustomService } from './service/redis-custom.service';
@@ -26,9 +27,9 @@ const jwtConfig = config.get('jwt');
         }),
         PassportModule.register({ defaultStrategy: 'jwt' })
     ],
-    controllers: [UsersController, GoogleAuthController],
-    providers: [UsersService, EmailService, RedisCustomService, JwtStrategy, JwtGoogleStrategy],
-    exports: [PassportModule, JwtStrategy, JwtGoogleStrategy]
+    controllers: [UsersController, AuthController],
+    providers: [UsersService, EmailService, RedisCustomService, JwtStrategy, JwtGoogleStrategy, JwtKakaoStrategy],
+    exports: [PassportModule, JwtStrategy, JwtGoogleStrategy, JwtKakaoStrategy]
 })
 export class UsersModule { }
 
