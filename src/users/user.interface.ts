@@ -28,6 +28,12 @@ export interface GoogleUser {
     lastName: string;
 }
 
+export interface KakaoUser {
+    email: string;
+    nickname: string;
+    photo?: string;
+}
+
 export interface MailOptions {
     to: string;
     subject: string;

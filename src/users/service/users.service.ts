@@ -23,7 +23,7 @@ import {
 import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
 import { LocalUser, User } from '../user.entity';
 import { Provider, Role } from '../user.enum';
-import { GoogleUser, TokenPayload } from '../user.interface';
+import { GoogleUser, KakaoUser, TokenPayload } from '../user.interface';
 import { LocalUserRepository, UserRepository } from '../user.repository';
 
 const jwtConfig = config.get('jwt');
@@ -76,6 +76,35 @@ export class UsersService {
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
         }
+    }
+
+    async socialLogin(user: GoogleUser | KakaoUser): Promise<JwtTokenResponseDto> {
+        let socialUser;
+        if (this.isGoogleUser(user)) {
+            const { email, firstName, lastName } = user;
+            const name = firstName + lastName;
+            let localUser = await this.localUserRepository.findOneBy({ email });
+
+            if (localUser) {
+                await this.userRepository.update({ id: localUser.id }, { name, provider: Provider.GOOGLE, role: Role.USER });
+                socialUser = localUser;
+            } else {
+                socialUser = this.userRepository.create({ email, name, provider: Provider.GOOGLE, role: Role.USER });
+                await this.userRepository.save(socialUser);
+            }
+        } else {
+            const { email, nickname } = user;
+            let localUser = await this.localUserRepository.findOneBy({ email });
+
+            if (localUser) {
+                await this.userRepository.update({ id: localUser.id }, { name: nickname, provider: Provider.KAKAO, role: Role.USER });
+                socialUser = localUser;
+            } else {
+                socialUser = this.userRepository.create({ email, name: nickname, provider: Provider.KAKAO, role: Role.USER });
+                await this.userRepository.save(socialUser);
+            }
+        }
+        return this.generateJwtTokens(socialUser.id, socialUser.email, socialUser.role);
     }
 
     async loginByGoogle(googleUser: GoogleUser): Promise<JwtTokenResponseDto> {
@@ -203,5 +232,9 @@ export class UsersService {
 
         const refreshTokenExpiry = jwtConfig.refreshToken.expiresIn; // 1209600 sec (2w)
         return new JwtTokenResponseDto(sub, accessToken, refreshToken, refreshTokenExpiry);
+    }
+
+    private isGoogleUser(user: GoogleUser | KakaoUser): user is GoogleUser {
+        return user.email.includes('@google.com');
     }
 }
