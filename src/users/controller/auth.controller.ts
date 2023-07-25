@@ -90,7 +90,7 @@ export class AuthController {
             default:
                 return ApiResponse.fail(HttpStatus.BAD_REQUEST, '잘못된 소셜 로그인 요청입니다.');
         }
-        const jwtTokenResponseDto = await this.userService.socialLogin(user);
+        const jwtTokenResponseDto = await this.userService.loginBySocial(user);
         await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
         // Send JWT access token to front-end with cookie
         res.cookie('token', jwtTokenResponseDto.accessToken, {
