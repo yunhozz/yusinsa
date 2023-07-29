@@ -15,7 +15,7 @@ import { Gender, Provider, Role } from './user.enum';
 import { Address, LocalUserInfo } from './user.interface';
 
 @Entity()
-@TableInheritance({ column: { type: 'varchar', name: 'type', default: 'SOCIAL' }})
+@TableInheritance({ column: { type: 'varchar', name: 'type' }})
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: bigint;
@@ -67,3 +67,6 @@ export class LocalUser extends User implements LocalUserInfo {
         return `${address.si} ${address.gu} ${address.dong} ${address.etc}`;
     }
 }
+
+@ChildEntity('SOCIAL')
+export class SocialUser extends User { }

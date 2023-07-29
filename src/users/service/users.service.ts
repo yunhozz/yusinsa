@@ -21,10 +21,10 @@ import {
     UpdateProfileRequestDto,
 } from '../dto/user-request.dto';
 import { JwtTokenResponseDto, UserProfileResponseDto } from '../dto/user-response.dto';
-import { LocalUser, User } from '../user.entity';
+import { LocalUser, SocialUser, User } from '../user.entity';
 import { Provider, Role } from '../user.enum';
 import { GoogleUser, KakaoUser, TokenPayload } from '../user.interface';
-import { LocalUserRepository, UserRepository } from '../user.repository';
+import { LocalUserRepository, SocialUserRepository, UserRepository } from '../user.repository';
 
 const jwtConfig = config.get('jwt');
 
@@ -35,15 +35,17 @@ export class UsersService {
         private readonly userRepository: UserRepository,
         @InjectRepository(LocalUser)
         private readonly localUserRepository: LocalUserRepository,
+        @InjectRepository(SocialUser)
+        private readonly socialUserRepository: SocialUserRepository,
         private readonly jwtService: JwtService
     ) { }
 
     async joinToGuest(dto: CreateUserRequestDto): Promise<string> {
         const { email, password, name, age, gender, si, gu, dong, etc, phoneNumber } = dto;
-        const found = await this.userRepository.exist({ where: { email } });
+        const found = await this.localUserRepository.exist({ where: { email } });
 
         if (found) {
-            throw new BadRequestException(`중복되는 이메일이 존재합니다. Email : ${email}`);
+            throw new BadRequestException(`중복되는 이메일이 존재합니다. email: ${email}`);
         }
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -63,16 +65,16 @@ export class UsersService {
     }
 
     async updateGuestToUser(email: string): Promise<void> {
-        const user = await this.findUserByEmail(email);
-        await this.userRepository.update({ id: user.id }, { role: Role.USER });
+        const localUser = await this.findLocalUserByEmail(email);
+        await this.localUserRepository.update({ id: localUser['id'] }, { role: Role.USER });
     }
 
     async loginById(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
         const { email, password } = dto;
-        const user = await this.findUserByEmail(email);
+        const localUser = await this.findLocalUserByEmail(email);
 
-        if (user && await bcrypt.compare(password, user['password'])) {
-            return await this.generateJwtTokens(user.id, user.email, user.role);
+        if (localUser && await bcrypt.compare(password, localUser.password)) {
+            return await this.generateJwtTokens(localUser.id, localUser.email, localUser.role);
         } else {
             throw new UnauthorizedException(`이메일 또는 비밀번호를 잘못 입력하셨습니다.`);
         }
@@ -80,14 +82,14 @@ export class UsersService {
 
     async loginBySocial(user: GoogleUser | KakaoUser): Promise<JwtTokenResponseDto> {
         const socialUser = this.getUserBySocialProvider(user);
-        let oldUser = await this.userRepository.findOneBy({ email: socialUser.email });
+        let localUser = await this.findLocalUserByEmail(socialUser.email);
 
-        if (oldUser) {
-            await this.userRepository.update({ id: oldUser.id }, { name: socialUser.name, provider: user.provider, role: Role.USER });
-            return this.generateJwtTokens(oldUser.id, oldUser.email, oldUser.role);
+        if (localUser) {
+            await this.localUserRepository.update({ id: localUser.id }, { name: socialUser.name, provider: user.provider, role: Role.USER });
+            return this.generateJwtTokens(localUser.id, localUser.email, localUser.role);
         } else {
-            const newUser = this.userRepository.create({ email: socialUser.email, name: socialUser.name, provider: user.provider, role: Role.USER });
-            await this.userRepository.save(newUser);
+            const newUser = this.socialUserRepository.create({ email: socialUser.email, name: socialUser.name, provider: user.provider, role: Role.USER });
+            await this.socialUserRepository.save(newUser);
             return this.generateJwtTokens(newUser.id, newUser.email, newUser.role);
         }
     }
@@ -132,16 +134,16 @@ export class UsersService {
     }
 
     async getUserProfileById(id: bigint): Promise<UserProfileResponseDto> {
-        const user = await this.findUserById(id);
-        return new UserProfileResponseDto(user);
+        const localUser = await this.findLocalUserById(id);
+        return new UserProfileResponseDto(localUser);
     }
 
     async updatePassword(id: bigint, dto: UpdatePasswordRequestDto): Promise<void> {
         // 기존 비밀번호 입력 -> 새 비밀번호 입력 -> 비밀번호 확인
         const { oldPassword, newPassword, checkPassword } = dto;
-        const user = await this.findUserById(id);
+        const localUser = await this.findLocalUserById(id);
 
-        if (!await bcrypt.compare(oldPassword, user['password'])) {
+        if (!await bcrypt.compare(oldPassword, localUser['password'])) {
             throw new BadRequestException('기존 비밀번호와 다릅니다.');
         }
         if (newPassword !== checkPassword) {
@@ -149,40 +151,18 @@ export class UsersService {
         }
         const salt = await bcrypt.genSalt();
         const password = await bcrypt.hash(newPassword, salt);
-        await this.localUserRepository.update({ id: user.id }, { password });
+        await this.localUserRepository.update({ id: localUser['id'] }, { password });
     }
 
     async updateProfileById(id: bigint, dto: UpdateProfileRequestDto): Promise<UserProfileResponseDto> {
-        const user = await this.findUserById(id);
-        await this.localUserRepository.update({ id: user.id }, dto);
-        return new UserProfileResponseDto(user);
+        const localUser = await this.findLocalUserById(id);
+        await this.localUserRepository.update({ id: localUser.id }, dto);
+        return new UserProfileResponseDto(localUser);
     }
 
     async deleteUserById(id: bigint): Promise<void> {
         const user = await this.findUserById(id);
         await this.userRepository.softDelete({ id: user.id });
-    }
-
-    private async findUserById(id: bigint): Promise<User> {
-        return await this.userRepository.findOneByOrFail({ id })
-            .catch(e => {
-                if (e instanceof EntityNotFoundError) {
-                    throw new NotFoundException(`유저를 찾을 수 없습니다.`);
-                } else {
-                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            });
-    }
-
-    private async findUserByEmail(email: string): Promise<User> {
-        return await this.userRepository.findOneByOrFail({ email })
-            .catch(e => {
-                if (e instanceof EntityNotFoundError) {
-                    throw new NotFoundException(`해당 이메일에 대한 유저를 찾을 수 없습니다. Email : ${email}`);
-                } else {
-                    throw new HttpException(e.message(), HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            });
     }
 
     private async generateJwtTokens(sub: bigint, username: string, role: Role): Promise<JwtTokenResponseDto> {
@@ -213,8 +193,41 @@ export class UsersService {
                 socialUser = { email: user.email, name: user['nickname'] };
                 break;
             default:
-                throw new BadRequestException(`잘못된 소셜 로그인 요청입니다. 타입 : ${user.provider}`);
+                throw new BadRequestException(`잘못된 소셜 로그인 요청입니다. provider: ${user.provider}`);
         }
         return socialUser;
+    }
+
+    private async findUserById(id: bigint): Promise<User> {
+        return await this.userRepository.findOneByOrFail({ id })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`유저를 찾을 수 없습니다.`);
+                } else {
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
+    }
+
+    private async findLocalUserById(id: bigint): Promise<LocalUser> {
+        return await this.localUserRepository.findOneByOrFail({ id })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`유저를 찾을 수 없습니다.`);
+                } else {
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
+    }
+
+    private async findLocalUserByEmail(email: string): Promise<LocalUser> {
+        return await this.localUserRepository.findOneByOrFail({ email })
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 이메일의 유저를 찾을 수 없습니다. email: ${email}`);
+                } else {
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
     }
 }

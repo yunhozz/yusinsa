@@ -1,4 +1,4 @@
-import { LocalUser, User } from '../user.entity';
+import { LocalUser } from '../user.entity';
 import { Gender } from '../user.enum';
 
 export class UserProfileResponseDto {
@@ -8,12 +8,12 @@ export class UserProfileResponseDto {
     gender: Gender;
     phoneNumber: number;
 
-    constructor(user: User | LocalUser) {
+    constructor(user: LocalUser) {
         this.email = user.email;
         this.name = user.name;
-        this.age = user['age'];
-        this.gender = user['gender'];
-        this.phoneNumber = user['phoneNumber'];
+        this.age = user.age;
+        this.gender = user.gender;
+        this.phoneNumber = user.phoneNumber;
     }
 }
 

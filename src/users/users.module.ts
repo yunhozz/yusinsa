@@ -12,15 +12,15 @@ import { UsersController } from './controller/users.controller';
 import { EmailService } from './service/email.service';
 import { RedisCustomService } from './service/redis-custom.service';
 import { UsersService } from './service/users.service';
-import { LocalUser, User } from './user.entity';
-import { LocalUserRepository, UserRepository } from './user.repository';
+import { LocalUser, SocialUser, User } from './user.entity';
+import { LocalUserRepository, SocialUserRepository, UserRepository } from './user.repository';
 
 const jwtConfig = config.get('jwt');
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, LocalUser]),
-        TypeOrmCustomModule.forCustomRepository([UserRepository, LocalUserRepository]),
+        TypeOrmModule.forFeature([User, LocalUser, SocialUser]),
+        TypeOrmCustomModule.forCustomRepository([UserRepository, LocalUserRepository, SocialUserRepository]),
         JwtModule.register({
             secret: process.env.JWT_SECRET || jwtConfig.secret,
             signOptions: { expiresIn: jwtConfig.accessToken.expiresIn }
