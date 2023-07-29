@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import * as config from 'config';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { Provider } from '../../users/user.enum';
 import { GoogleUser } from '../../users/user.interface';
 
 const oauthConfig = config.get('oauth');
@@ -21,6 +22,7 @@ export class JwtGoogleStrategy extends PassportStrategy(Strategy, 'google') {
         try {
             const { emails, name } = profile;
             const googleUser: GoogleUser = {
+                provider: Provider.GOOGLE,
                 email: emails[0].value,
                 firstName: name.familyName,
                 lastName: name.givenName

@@ -1,4 +1,4 @@
-import { Gender, Role } from './user.enum';
+import { Gender, Provider, Role } from './user.enum';
 
 export interface LocalUserInfo {
     password: string;
@@ -22,20 +22,22 @@ export interface TokenPayload {
     role: Role;
 }
 
+export interface MailOptions {
+    to: string;
+    subject: string;
+    html: string;
+}
+
 export interface GoogleUser {
+    provider: Provider;
     email: string;
     firstName: string;
     lastName: string;
 }
 
 export interface KakaoUser {
+    provider: Provider;
     email: string;
     nickname: string;
     photo?: string;
-}
-
-export interface MailOptions {
-    to: string;
-    subject: string;
-    html: string;
 }

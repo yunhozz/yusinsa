@@ -4,7 +4,6 @@ import {
     Get,
     HttpCode,
     HttpStatus,
-    Param,
     Patch,
     Post,
     Query,
@@ -48,15 +47,9 @@ export class AuthController {
             const jwtTokenResponseDto = await this.userService.tokenReissue(token.split(' ')[1]);
 
             if (jwtTokenResponseDto) {
-                // Send JWT access token to front-end with cookie
                 const sub = req.user?.['sub'];
                 await this.redisService.set(sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
-                res.cookie('token', jwtTokenResponseDto.accessToken, {
-                    path: '/',
-                    httpOnly: true,
-                    secure: true,
-                    maxAge: 180000 // 3 min
-                });
+                this.storeAccessTokenOnCookie(res, jwtTokenResponseDto.accessToken);
                 return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 재발행 되었습니다.');
             }
             return ApiResponse.ok(HttpStatus.OK, 'JWT 토큰이 아직 유효합니다.');
@@ -66,50 +59,51 @@ export class AuthController {
     }
 
     /**
-     * 소셜 로그인 페이지 호출
-     * @param provider: Provider
+     * 구글 소셜 로그인 페이지 호출
      */
-    @Get('/:provider')
-    @UseGuards(AuthGuard(['google', 'kakao']))
-    getSocialLoginPage(@Param('provider') provider: Provider): void { }
+    @Get('/google')
+    @UseGuards(AuthGuard('google'))
+    @HttpCode(HttpStatus.OK)
+    getGoogleLoginPage(): void { }
 
     /**
-     * 소셜 로그인 콜백 페이지 호출, 소셜 로그인 진행
-     * @param provider: Provider
+     * 카카오 소셜 로그인 페이지 호출
+     */
+    @Get('/kakao')
+    @UseGuards(AuthGuard('kakao'))
+    @HttpCode(HttpStatus.OK)
+    getKakaoLoginPage(): void { }
+
+    /**
+     * 구글 소셜 로그인
      * @param req: Request
      * @param res: Response
      */
-    @Get('/:provider/callback')
-    @UseGuards(AuthGuard(['google', 'kakao']))
-    @HttpCode(HttpStatus.OK)
-    async socialLoginCallback(
-        @Param('provider') provider: Provider,
-        @Req() req: Request,
-        @Res({ passthrough: true }) res: Response
-    ): Promise<ApiResponse> {
-        const reqUser = req.user;
-        let user: GoogleUser | KakaoUser;
-
-        switch (provider) {
-            case Provider.GOOGLE:
-                user = { email: reqUser['email'], firstName: reqUser['firstName'], lastName: reqUser['lastName'] };
-                break;
-            case Provider.KAKAO:
-                user = { email: reqUser['email'], nickname: reqUser['nickname'] };
-                break;
-            default:
-                return ApiResponse.fail(HttpStatus.BAD_REQUEST, '잘못된 소셜 로그인 요청입니다.');
-        }
-        const jwtTokenResponseDto = await this.userService.loginBySocial(user);
+    @Get('/google/callback')
+    @UseGuards(AuthGuard('google'))
+    @HttpCode(HttpStatus.CREATED)
+    async googleLoginCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
+        const googleUser: GoogleUser = { provider: Provider.GOOGLE, email: req.user['email'], firstName: req.user['firstName'], lastName: req.user['lastName'] };
+        const jwtTokenResponseDto = await this.userService.loginBySocial(googleUser);
         await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
-        // Send JWT access token to front-end with cookie
-        res.cookie('token', jwtTokenResponseDto.accessToken, {
-            path: '/',
-            httpOnly: true,
-            secure: true,
-            maxAge: 180000 // 3 min
-        });
-        return ApiResponse.ok(HttpStatus.OK, `${provider} 소셜 로그인에 성공했습니다.`);
+        this.storeAccessTokenOnCookie(res, jwtTokenResponseDto.accessToken);
+        return ApiResponse.ok(HttpStatus.CREATED, '구글 로그인에 성공했습니다.');
+    }
+
+    /**
+     * 카카오 소셜 로그인
+     * @param req: Request
+     * @param res: Response
+     */
+    @Get('/kakao/callback')
+    @UseGuards(AuthGuard('kakao'))
+    @HttpCode(HttpStatus.CREATED)
+    async kakaoLoginCallback(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
+        const kakaoUser: KakaoUser = { provider: Provider.KAKAO, email: req.user['email'], nickname: req.user['nickname'] };
+        const jwtTokenResponseDto = await this.userService.loginBySocial(kakaoUser);
+        await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
+        this.storeAccessTokenOnCookie(res, jwtTokenResponseDto.accessToken);
+        return ApiResponse.ok(HttpStatus.CREATED, '카카오 로그인에 성공했습니다.')
     }
 
     /**
@@ -152,13 +146,7 @@ export class AuthController {
     async login(@Body(ValidationPipe) dto: LoginRequestDto, @Res({ passthrough: true }) res: Response): Promise<ApiResponse> {
         const jwtTokenResponseDto = await this.userService.loginById(dto);
         await this.redisService.set(jwtTokenResponseDto.sub, jwtTokenResponseDto.refreshToken, jwtTokenResponseDto.refreshTokenExpiry);
-        // Send JWT access token to front-end with cookie
-        res.cookie('token', jwtTokenResponseDto.accessToken, {
-            path: '/',
-            httpOnly: true,
-            secure: true,
-            maxAge: 180000 // 3 min
-        });
+        this.storeAccessTokenOnCookie(res, jwtTokenResponseDto.accessToken);
         return ApiResponse.ok(HttpStatus.CREATED, '로그인에 성공하였습니다.');
     }
 
@@ -201,5 +189,14 @@ export class AuthController {
         res.removeHeader('Authentication');
         res.clearCookie('jwt');
         return ApiResponse.ok(HttpStatus.NO_CONTENT, '회원 탈퇴가 완료되었습니다.');
+    }
+
+    private storeAccessTokenOnCookie(res: Response, accessToken: string): void {
+        res.cookie('token', accessToken, {
+            path: '/',
+            httpOnly: true,
+            secure: true,
+            maxAge: 180000 // 3 min
+        });
     }
 }

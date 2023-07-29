@@ -79,32 +79,17 @@ export class UsersService {
     }
 
     async loginBySocial(user: GoogleUser | KakaoUser): Promise<JwtTokenResponseDto> {
-        let socialUser;
-        if (this.isGoogleUser(user)) {
-            const { email, firstName, lastName } = user;
-            const name = firstName + lastName;
-            let localUser = await this.localUserRepository.findOneBy({ email });
+        const socialUser = this.getUserBySocialProvider(user);
+        let oldUser = await this.userRepository.findOneBy({ email: socialUser.email });
 
-            if (localUser) {
-                await this.userRepository.update({ id: localUser.id }, { name, provider: Provider.GOOGLE, role: Role.USER });
-                socialUser = localUser;
-            } else {
-                socialUser = this.userRepository.create({ email, name, provider: Provider.GOOGLE, role: Role.USER });
-                await this.userRepository.save(socialUser);
-            }
+        if (oldUser) {
+            await this.userRepository.update({ id: oldUser.id }, { name: socialUser.name, provider: user.provider, role: Role.USER });
+            return this.generateJwtTokens(oldUser.id, oldUser.email, oldUser.role);
         } else {
-            const { email, nickname } = user;
-            let localUser = await this.localUserRepository.findOneBy({ email });
-
-            if (localUser) {
-                await this.userRepository.update({ id: localUser.id }, { name: nickname, provider: Provider.KAKAO, role: Role.USER });
-                socialUser = localUser;
-            } else {
-                socialUser = this.userRepository.create({ email, name: nickname, provider: Provider.KAKAO, role: Role.USER });
-                await this.userRepository.save(socialUser);
-            }
+            const newUser = this.userRepository.create({ email: socialUser.email, name: socialUser.name, provider: user.provider, role: Role.USER });
+            await this.userRepository.save(newUser);
+            return this.generateJwtTokens(newUser.id, newUser.email, newUser.role);
         }
-        return this.generateJwtTokens(socialUser.id, socialUser.email, socialUser.role);
     }
 
     async tokenReissue(token: string): Promise<JwtTokenResponseDto | null> {
@@ -218,7 +203,18 @@ export class UsersService {
         return new JwtTokenResponseDto(sub, accessToken, refreshToken, refreshTokenExpiry);
     }
 
-    private isGoogleUser(user: GoogleUser | KakaoUser): user is GoogleUser {
-        return user.email.includes('@google.com');
+    private getUserBySocialProvider(user: GoogleUser | KakaoUser): { email: string, name: string } {
+        let socialUser: { email: string, name: string };
+        switch (user.provider) {
+            case Provider.GOOGLE:
+                socialUser = { email: user.email, name: user['firstName'] + user['lastName'] };
+                break;
+            case Provider.KAKAO:
+                socialUser = { email: user.email, name: user['nickname'] };
+                break;
+            default:
+                throw new BadRequestException(`잘못된 소셜 로그인 요청입니다. 타입 : ${user.provider}`);
+        }
+        return socialUser;
     }
 }
