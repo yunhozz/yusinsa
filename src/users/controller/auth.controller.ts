@@ -65,17 +65,27 @@ export class AuthController {
         }
     }
 
+    /**
+     * 소셜 로그인 페이지 호출
+     * @param provider: Provider
+     */
     @Get('/:provider')
     @UseGuards(AuthGuard(['google', 'kakao']))
     getSocialLoginPage(@Param('provider') provider: Provider): void { }
 
+    /**
+     * 소셜 로그인 콜백 페이지 호출, 소셜 로그인 진행
+     * @param provider: Provider
+     * @param req: Request
+     * @param res: Response
+     */
     @Get('/:provider/callback')
     @UseGuards(AuthGuard(['google', 'kakao']))
     @HttpCode(HttpStatus.OK)
     async socialLoginCallback(
         @Param('provider') provider: Provider,
         @Req() req: Request,
-        @Res({ passthrough: true}) res: Response
+        @Res({ passthrough: true }) res: Response
     ): Promise<ApiResponse> {
         const reqUser = req.user;
         let user: GoogleUser | KakaoUser;
