@@ -66,7 +66,7 @@ export class UsersService {
 
     async updateGuestToUser(email: string): Promise<void> {
         const localUser = await this.findLocalUserByEmail(email);
-        await this.localUserRepository.update({ id: localUser['id'] }, { role: Role.USER });
+        await this.localUserRepository.update({ id: localUser.id }, { role: Role.USER });
     }
 
     async loginById(dto: LoginRequestDto): Promise<JwtTokenResponseDto> {
@@ -82,11 +82,11 @@ export class UsersService {
 
     async loginBySocial(user: GoogleUser | KakaoUser): Promise<JwtTokenResponseDto> {
         const socialUser = this.getUserBySocialProvider(user);
-        let localUser = await this.findLocalUserByEmail(socialUser.email);
+        let oldUser = await this.userRepository.findOneBy({ email: socialUser.email });
 
-        if (localUser) {
-            await this.localUserRepository.update({ id: localUser.id }, { name: socialUser.name, provider: user.provider, role: Role.USER });
-            return this.generateJwtTokens(localUser.id, localUser.email, localUser.role);
+        if (oldUser) {
+            await this.userRepository.update({ id: oldUser.id }, { name: socialUser.name, provider: user.provider, role: Role.USER });
+            return this.generateJwtTokens(oldUser.id, oldUser.email, oldUser.role);
         } else {
             const newUser = this.socialUserRepository.create({ email: socialUser.email, name: socialUser.name, provider: user.provider, role: Role.USER });
             await this.socialUserRepository.save(newUser);
@@ -143,7 +143,7 @@ export class UsersService {
         const { oldPassword, newPassword, checkPassword } = dto;
         const localUser = await this.findLocalUserById(id);
 
-        if (!await bcrypt.compare(oldPassword, localUser['password'])) {
+        if (!await bcrypt.compare(oldPassword, localUser.password)) {
             throw new BadRequestException('기존 비밀번호와 다릅니다.');
         }
         if (newPassword !== checkPassword) {
