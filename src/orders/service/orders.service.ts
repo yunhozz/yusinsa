@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityNotFoundError, Equal, Not } from 'typeorm';
+import { Brackets, EntityNotFoundError, Equal } from 'typeorm';
 import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
@@ -8,11 +8,13 @@ import { User } from '../../users/user.entity';
 import { UserRepository } from '../../users/user.repository';
 import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
 import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
+import { Delivery } from '../entity/delivery.entity';
 import { Item } from '../entity/item.entity';
 import { OrderItem } from '../entity/order-item.entity';
 import { Order } from '../entity/order.entity';
-import { OrderStatus } from '../order.enum';
+import { DeliveryStatus, OrderStatus } from '../order.enum';
 import { OrderItemMap } from '../order.interface';
+import { DeliveryRepository } from '../repository/delivery.repository';
 import { ItemRepository } from '../repository/item.repository';
 import { OrderItemRepository } from '../repository/order-item.repository';
 import { OrderRepository } from '../repository/order.repository';
@@ -27,7 +29,9 @@ export class OrdersService {
         @InjectRepository(OrderItem)
         private readonly orderItemRepository: OrderItemRepository,
         @InjectRepository(Item)
-        private readonly itemRepository: ItemRepository
+        private readonly itemRepository: ItemRepository,
+        @InjectRepository(Delivery)
+        private readonly deliveryRepository: DeliveryRepository
     ) { }
 
     private readonly logger = new Logger(OrdersService.name);
@@ -55,7 +59,7 @@ export class OrdersService {
     // 주문 내역 상세 조회
     async findOrderDetails(orderCode: string): Promise<OrderResponseDto> {
         const orderItems = await this.orderItemRepository.createQueryBuilder('orderItem')
-            .select(['item.id', 'orderItem.id', 'orderItem.orderCount', 'orderItem.createdAt'])
+            .select(['orderItem.id', 'orderItem.orderCount', 'orderItem.createdAt', 'item.id'])
             .innerJoin('orderItem.order', 'order')
             .innerJoin('orderItem.item', 'item')
             .where('order.code = :orderCode', { orderCode })
@@ -63,7 +67,8 @@ export class OrdersService {
             .getMany();
 
         const order = await this.orderRepository.createQueryBuilder('order')
-            .select(['order.code', 'order.totalPrice', 'order.address', 'order.status', 'order.updatedAt'])
+            .select(['order.code', 'order.totalPrice', 'order.address', 'order.status', 'order.updatedAt', 'delivery.status'])
+            .innerJoin('order.delivery', 'delivery')
             .where('order.code = :orderCode', { orderCode })
             .getOneOrFail()
             .catch(e => {
@@ -84,7 +89,7 @@ export class OrdersService {
                 .getOneOrFail()
                 .catch(e => {
                     if (e instanceof EntityNotFoundError) {
-                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. Item ID : ${itemId}`);
+                        throw new NotFoundException(`해당 상품을 찾을 수 없습니다. item ID : ${itemId}`);
                     } else {
                         throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
                     }
@@ -108,7 +113,7 @@ export class OrdersService {
             orderCount: count
         });
 
-        let order;
+        let order: Order;
         const findOrder = await this.orderRepository.findOneBy({
             user: Equal(user.id),
             status: OrderStatus.READY
@@ -119,6 +124,7 @@ export class OrdersService {
         } else {
             order = this.orderRepository.create({
                 user,
+                delivery: null,
                 code: uuid(),
                 totalPrice: 0,
                 address: {},
@@ -164,11 +170,14 @@ export class OrdersService {
         for (const [itemId, arr] of quantities.entries()) {
             await this.itemRepository.update({ id: itemId }, { salesCount: arr[0], stockQuantity: arr[1] });
         }
+        const delivery = this.deliveryRepository.create();
         await this.orderRepository.update({ id: order.id }, {
+            delivery,
             totalPrice: resultPrice,
             address: { si, gu, dong, etc },
             status: OrderStatus.DONE
         });
+
         return order.code;
     }
 
@@ -182,16 +191,20 @@ export class OrdersService {
 
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
-        const order = await this.orderRepository.findOneByOrFail({
-            code: orderCode,
-            status: Not(OrderStatus.COMPLETE)
-        }).catch(e => {
-            if (e instanceof EntityNotFoundError) {
-                throw new NotFoundException(`해당 주문건이 이미 진행 중입니다. Order Code : ${orderCode}`);
-            } else {
-                throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        });
+        const order = await this.orderRepository.createQueryBuilder('order')
+            .select(['order.id', 'order.code'])
+            .innerJoin('order.delivery', 'delivery')
+            .where('order.code = :orderCode', { orderCode })
+            .andWhere('order.status != :status', { status: OrderStatus.COMPLETE })
+            .andWhere('delivery.status = :status', { status: DeliveryStatus.PAYMENT })
+            .getOneOrFail()
+            .catch(e => {
+                if (e instanceof EntityNotFoundError) {
+                    throw new NotFoundException(`해당 주문 건이 이미 진행 중 입니다. order code : ${orderCode}`);
+                } else {
+                    throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            });
 
         const orderItems = await this.orderItemRepository.find({
             relations: { order: true },

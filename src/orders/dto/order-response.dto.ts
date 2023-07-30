@@ -1,7 +1,7 @@
 import { Item } from '../entity/item.entity';
 import { OrderItem } from '../entity/order-item.entity';
 import { Order } from '../entity/order.entity';
-import { OrderStatus } from '../order.enum';
+import { DeliveryStatus, OrderStatus } from '../order.enum';
 import { Address } from '../order.interface';
 
 export class OrderResponseDto {
@@ -10,6 +10,7 @@ export class OrderResponseDto {
     address: Address;
     status: OrderStatus;
     updatedAt: Date;
+    deliveryStatus: DeliveryStatus;
     orderItems: OrderItemResponseDto[];
 
     constructor(order: Order, orderItems: OrderItemResponseDto[]) {
@@ -18,6 +19,7 @@ export class OrderResponseDto {
         this.address = order.address;
         this.status = order.status;
         this.updatedAt = order.updatedAt;
+        this.deliveryStatus = order.delivery.status;
         this.orderItems = orderItems;
     }
 }

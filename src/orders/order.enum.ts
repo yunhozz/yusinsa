@@ -45,6 +45,14 @@ export enum OrderStatus {
     CANCEL = 'cancel'
 }
 
+export enum DeliveryStatus {
+    PAYMENT = 'payment',
+    PREPARING = 'preparing',
+    SHIPPING = 'shipping',
+    COMPLETE = 'complete',
+    CANCELED = 'canceled'
+}
+
 export const CATEGORIES = {
     TOP: TopCategory,
     OUTER: OuterCategory,
