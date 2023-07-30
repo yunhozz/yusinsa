@@ -27,7 +27,7 @@ export class OrdersService {
         @InjectRepository(OrderItem)
         private readonly orderItemRepository: OrderItemRepository,
         @InjectRepository(Item)
-        private readonly itemRepository: ItemRepository<Item>
+        private readonly itemRepository: ItemRepository
     ) { }
 
     private readonly logger = new Logger(OrdersService.name);

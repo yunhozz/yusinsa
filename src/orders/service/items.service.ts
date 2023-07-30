@@ -15,15 +15,15 @@ import { ItemRepository } from '../repository/item.repository';
 export class ItemsService {
     constructor(
         @InjectRepository(Item)
-        private readonly itemRepository: ItemRepository<Item>,
+        private readonly itemRepository: ItemRepository,
         @InjectRepository(Top)
-        private readonly topRepository: ItemRepository<Top>,
+        private readonly topRepository: ItemRepository,
         @InjectRepository(Outer)
-        private readonly outerRepository: ItemRepository<Outer>,
+        private readonly outerRepository: ItemRepository,
         @InjectRepository(Pants)
-        private readonly pantsRepository: ItemRepository<Pants>,
+        private readonly pantsRepository: ItemRepository,
         @InjectRepository(Shoes)
-        private readonly shoesRepository: ItemRepository<Shoes>
+        private readonly shoesRepository: ItemRepository
     ) { }
 
     // 검색 조건에 맞는 상품 페이지 조회
