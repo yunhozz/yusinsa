@@ -24,6 +24,10 @@ import { ItemsService } from '../service/items.service';
 export class ItemsController {
     constructor(private readonly itemService: ItemsService) { }
 
+    /**
+     * 특정 상품 정보 조회
+     * @param itemCode: string
+     */
     @Get("/:code")
     @HttpCode(HttpStatus.OK)
     async getItemInfo(@Param('code') itemCode: string): Promise<ApiResponse> {
@@ -31,6 +35,10 @@ export class ItemsController {
         return ApiResponse.ok(HttpStatus.OK, '해당 상품 조회에 성공했습니다.', itemInfo);
     }
 
+    /**
+     * 상품 추가
+     * @param dto: ItemRequestDto
+     */
     @Post()
     @UseGuards(AuthGuard(), RolesGuard)
     @Roles(Role.ADMIN)
@@ -40,6 +48,11 @@ export class ItemsController {
         return ApiResponse.ok(HttpStatus.CREATED, '상품을 성공적으로 추가하였습니다.', itemCode);
     }
 
+    /**
+     * 검색 조건에 따른 상품 페이지 조회
+     * @param query: ItemQueryRequestDto
+     * @param category: Category
+     */
     @Post('/q')
     @HttpCode(HttpStatus.CREATED)
     async getItemPageBySearchConditions(
@@ -50,6 +63,11 @@ export class ItemsController {
         return ApiResponse.ok(HttpStatus.OK, '검색 조건에 맞는 상품 리스트를 조회하였습니다.', itemPage);
     }
 
+    /**
+     * 특정 상품 정보 업데이트
+     * @param dto: ItemUpdateRequestDto
+     * @param itemCode: string
+     */
     @Patch()
     @UseGuards(AuthGuard(), RolesGuard)
     @Roles(Role.ADMIN)
@@ -59,6 +77,10 @@ export class ItemsController {
         return ApiResponse.ok(HttpStatus.CREATED, '해당 상품을 성공적으로 업데이트 하였습니다.', itemInfo);
     }
 
+    /**
+     * 특정 상품 삭제
+     * @param itemCode: string
+     */
     @Patch('/:code')
     @UseGuards(AuthGuard(), RolesGuard)
     @Roles(Role.ADMIN)
