@@ -58,7 +58,8 @@ export class UsersController {
      * @param id: bigint
      */
     @Get('/:id')
-    @UseGuards(AuthGuard())
+    @UseGuards(AuthGuard(), RolesGuard)
+    @Roles(Role.ADMIN, Role.USER)
     @HttpCode(HttpStatus.OK)
     async getUserInfo(@Param('id', ParseIntPipe) id: bigint): Promise<ApiResponse> {
         const dto = await this.userService.getUserProfileById(id);

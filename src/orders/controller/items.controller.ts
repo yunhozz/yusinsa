@@ -51,6 +51,8 @@ export class ItemsController {
     }
 
     @Patch()
+    @UseGuards(AuthGuard(), RolesGuard)
+    @Roles(Role.ADMIN)
     @HttpCode(HttpStatus.CREATED)
     async updateItemDetails(@Body(ValidationPipe) dto: ItemUpdateRequestDto, @Query('code') itemCode: string): Promise<ApiResponse> {
         const itemInfo = await this.itemService.updateItem(itemCode, dto);
@@ -58,6 +60,8 @@ export class ItemsController {
     }
 
     @Patch('/:code')
+    @UseGuards(AuthGuard(), RolesGuard)
+    @Roles(Role.ADMIN)
     @HttpCode(HttpStatus.CREATED)
     async deleteItemByCode(@Param('code') itemCode: string): Promise<ApiResponse> {
         const code = await this.itemService.softDeleteItem(itemCode);
