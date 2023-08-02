@@ -11,7 +11,7 @@ export class ItemRepository extends RootRepository<Item> {
     selectItemById(id: bigint): Promise<Item> {
         return this.createQueryBuilder('item')
             .select(['item.code', 'item.name', 'item.price', 'item.size', 'item.image'])
-            .where('item.id = :itemId', { id })
+            .where('item.id = :id', { id })
             .getOneOrFail();
     }
 
