@@ -1,13 +1,13 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityNotFoundError } from 'typeorm';
+import { EntityNotFoundError } from 'typeorm';
 import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
 import { ItemQueryRequestDto, ItemRequestDto, ItemUpdateRequestDto } from '../dto/item-request.dto';
 import { ItemResponseDto, ItemSimpleResponseDto } from '../dto/item-response.dto';
 import { Item, Outer, Pants, Shoes, Top } from '../entity/item.entity';
-import { CATEGORIES, Gender, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
+import { CATEGORIES, OuterCategory, PantsCategory, ShoesCategory, TopCategory } from '../order.enum';
 import { Category, CategoryEnum, ItemBaseObject, ItemExtraObject, ItemObject } from '../order.interface';
 import { ItemRepository } from '../repository/item.repository';
 
@@ -30,51 +30,8 @@ export class ItemsService {
     async findItemsByQuery(query: ItemQueryRequestDto, category: Category): Promise<Page<ItemSimpleResponseDto>> {
         const { pageNo, pageSize, keyword, gender, minPrice, maxPrice, size } = query;
         const page = new PageRequest(pageNo, pageSize);
-        const [items, count] = await this.itemRepository.createQueryBuilder('item')
-            .select('item')
-            .where(new Brackets(qb => {
-                qb.where('item.topCategory = :category', { category })
-                    .orWhere('item.outerCategory = :category', { category })
-                    .orWhere('item.pantsCategory = :category', { category })
-                    .orWhere('item.shoesCategory = :category', { category });
-            }))
-            .andWhere(new Brackets(qb => {
-                if (keyword) {
-                    qb.where('item.name like :keyword', { keyword: `%${keyword}%` })
-                        .orWhere('item.description like :keyword', { keyword: `%${keyword}%` });
-                }
-            }))
-            .andWhere(new Brackets(qb => {
-                const genderEq = 'item.gender = :gender';
-                if (gender) {
-                    switch (gender) {
-                        case Gender.MAN: qb.where(genderEq, { gender: Gender.MAN }); break;
-                        case Gender.WOMAN: qb.where(genderEq, { gender: Gender.WOMAN }); break;
-                        default: qb.where(genderEq, { gender: Gender.UNISEX });
-                    }
-                }
-            }))
-            .andWhere(new Brackets(qb => {
-                if (minPrice || maxPrice) {
-                    if (minPrice && !maxPrice) {
-                        qb.where('item.price >= :minPrice', { minPrice });
-                    } else if (!minPrice && maxPrice) {
-                        qb.where('item.price <= :maxPrice', { maxPrice });
-                    } else {
-                        qb.where('item.price >= :minPrice', { minPrice })
-                            .andWhere('item.price <= :maxPrice', { maxPrice });
-                    }
-                }
-            }))
-            .andWhere(new Brackets(qb => {
-                if (size) {
-                    qb.where('item.size = :size', { size });
-                }
-            }))
-            .offset(page.getOffset())
-            .limit(page.getLimit())
-            .orderBy('item.salesCount', 'DESC')
-            .getManyAndCount();
+        const [items, count] = await this.itemRepository
+            .selectItemsByCondition(category, keyword, gender, minPrice, maxPrice, size, pageNo, pageSize);
 
         const itemResponseDtoList: ItemSimpleResponseDto[] = [];
         items.forEach(item => itemResponseDtoList.push(new ItemSimpleResponseDto(item)));

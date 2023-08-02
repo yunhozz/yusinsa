@@ -1,6 +1,6 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityNotFoundError, Equal } from 'typeorm';
+import { EntityNotFoundError, Equal } from 'typeorm';
 import { v1 as uuid } from 'uuid';
 import { Page } from '../../common/pagination/page';
 import { PageRequest } from '../../common/pagination/page-request';
@@ -12,7 +12,7 @@ import { Delivery } from '../entity/delivery.entity';
 import { Item } from '../entity/item.entity';
 import { OrderItem } from '../entity/order-item.entity';
 import { Order } from '../entity/order.entity';
-import { DeliveryStatus, OrderStatus } from '../order.enum';
+import { OrderStatus } from '../order.enum';
 import { OrderItemMap } from '../order.interface';
 import { DeliveryRepository } from '../repository/delivery.repository';
 import { ItemRepository } from '../repository/item.repository';
@@ -38,39 +38,14 @@ export class OrdersService {
 
     // 주문 내역 조회
     async findOrdersByUserId(userId: bigint, page: PageRequest, status: OrderStatus): Promise<Page<Order>> {
-        const [orders, count] = await this.orderRepository.createQueryBuilder('order')
-            .select(['order.code', 'order.totalPrice', 'order.status'])
-            .innerJoin('order.user', 'user')
-            .where('user.id = :userId', { userId })
-            .andWhere(new Brackets(qb => {
-                if (status != OrderStatus.WHOLE) {
-                    qb.where('order.status = :status', { status });
-                }
-                qb.andWhere('order.status != :status', { status: OrderStatus.READY });
-            }))
-            .offset(page.getOffset())
-            .limit(page.getLimit())
-            .orderBy('order.id', 'DESC')
-            .getManyAndCount();
-
+        const [orders, count] = await this.orderRepository.selectOrdersAndCount(userId, status, page.getOffset(), page.getLimit());
         return new Page(page.pageSize, count, orders);
     }
 
     // 주문 내역 상세 조회
     async findOrderDetails(orderCode: string): Promise<OrderResponseDto> {
-        const orderItems = await this.orderItemRepository.createQueryBuilder('orderItem')
-            .select(['orderItem.id', 'orderItem.orderCount', 'orderItem.createdAt', 'item.id'])
-            .innerJoin('orderItem.order', 'order')
-            .innerJoin('orderItem.item', 'item')
-            .where('order.code = :orderCode', { orderCode })
-            .orderBy('orderItem.createdAt', 'ASC')
-            .getMany();
-
-        const order = await this.orderRepository.createQueryBuilder('order')
-            .select(['order.code', 'order.totalPrice', 'order.address', 'order.status', 'order.updatedAt', 'delivery.status'])
-            .innerJoin('order.delivery', 'delivery')
-            .where('order.code = :orderCode', { orderCode })
-            .getOneOrFail()
+        const orderItems = await this.orderItemRepository.selectOrderItemsByOrderCode(orderCode);
+        const order = await this.orderRepository.selectOrderByOrderCode(orderCode)
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 주문 건을 찾을 수 없습니다. Order Code : ${orderCode}`);
@@ -83,10 +58,7 @@ export class OrdersService {
         const orderItemResponseDtoList: OrderItemResponseDto[] = [];
 
         for (const { orderItem, itemId } of map) {
-            const item = await this.itemRepository.createQueryBuilder('item')
-                .select(['item.code', 'item.name', 'item.price', 'item.size', 'item.image'])
-                .where('item.id = :itemId', { itemId })
-                .getOneOrFail()
+            const item = await this.itemRepository.selectItemById(itemId)
                 .catch(e => {
                     if (e instanceof EntityNotFoundError) {
                         throw new NotFoundException(`해당 상품을 찾을 수 없습니다. item ID : ${itemId}`);
@@ -191,13 +163,7 @@ export class OrdersService {
 
     // 주문 일괄 취소
     async changeStatusCancelAndDeleteOrder(orderCode: string): Promise<string> {
-        const order = await this.orderRepository.createQueryBuilder('order')
-            .select(['order.id', 'order.code'])
-            .innerJoin('order.delivery', 'delivery')
-            .where('order.code = :orderCode', { orderCode })
-            .andWhere('order.status != :status', { status: OrderStatus.COMPLETE })
-            .andWhere('delivery.status = :status', { status: DeliveryStatus.PAYMENT })
-            .getOneOrFail()
+        const order = await this.orderRepository.selectOrderIdAndCodeByOrderCode(orderCode)
             .catch(e => {
                 if (e instanceof EntityNotFoundError) {
                     throw new NotFoundException(`해당 주문 건이 이미 진행 중 입니다. order code : ${orderCode}`);
