@@ -31,7 +31,7 @@ export class ItemsService {
         const { pageNo, pageSize, keyword, gender, minPrice, maxPrice, size } = query;
         const page = new PageRequest(pageNo, pageSize);
         const [items, count] = await this.itemRepository
-            .selectItemsByCondition(category, keyword, gender, minPrice, maxPrice, size, pageNo, pageSize);
+            .selectItemsByCondition(pageNo, pageSize, category, keyword, gender, minPrice, maxPrice, size);
 
         const itemResponseDtoList: ItemSimpleResponseDto[] = [];
         items.forEach(item => itemResponseDtoList.push(new ItemSimpleResponseDto(item)));

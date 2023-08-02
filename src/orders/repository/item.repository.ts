@@ -16,14 +16,14 @@ export class ItemRepository extends RootRepository<Item> {
     }
 
     selectItemsByCondition(
-        category: Category,
-        keyword: string,
-        gender: Gender,
-        minPrice: number,
-        maxPrice: number,
-        size: string,
         offset: number,
-        limit: number
+        limit: number,
+        category?: Category,
+        keyword?: string,
+        gender?: Gender,
+        minPrice?: number,
+        maxPrice?: number,
+        size?: string
     ): Promise<[items: Item[], count: number]> {
         return this.createQueryBuilder('item')
             .select('item')
