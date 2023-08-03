@@ -8,13 +8,11 @@ import { User } from '../../users/user.entity';
 import { UserRepository } from '../../users/user.repository';
 import { OrderItemRequestDto, OrderRequestDto } from '../dto/order-request.dto';
 import { CartResponseDto, ItemResponseDto, OrderItemResponseDto, OrderResponseDto } from '../dto/order-response.dto';
-import { Delivery } from '../entity/delivery.entity';
 import { Item } from '../entity/item.entity';
 import { OrderItem } from '../entity/order-item.entity';
 import { Order } from '../entity/order.entity';
 import { OrderStatus } from '../order.enum';
 import { OrderItemMap } from '../order.interface';
-import { DeliveryRepository } from '../repository/delivery.repository';
 import { ItemRepository } from '../repository/item.repository';
 import { OrderItemRepository } from '../repository/order-item.repository';
 import { OrderRepository } from '../repository/order.repository';
@@ -29,9 +27,7 @@ export class OrdersService {
         @InjectRepository(OrderItem)
         private readonly orderItemRepository: OrderItemRepository,
         @InjectRepository(Item)
-        private readonly itemRepository: ItemRepository,
-        @InjectRepository(Delivery)
-        private readonly deliveryRepository: DeliveryRepository
+        private readonly itemRepository: ItemRepository
     ) { }
 
     private readonly logger = new Logger(OrdersService.name);
@@ -96,7 +92,6 @@ export class OrdersService {
         } else {
             order = this.orderRepository.create({
                 user,
-                delivery: null,
                 code: uuid(),
                 totalPrice: 0,
                 address: {},
@@ -142,9 +137,7 @@ export class OrdersService {
         for (const [itemId, arr] of quantities.entries()) {
             await this.itemRepository.update({ id: itemId }, { salesCount: arr[0], stockQuantity: arr[1] });
         }
-        const delivery = this.deliveryRepository.create();
         await this.orderRepository.update({ id: order.id }, {
-            delivery,
             totalPrice: resultPrice,
             address: { si, gu, dong, etc },
             status: OrderStatus.DONE

@@ -1,29 +1,26 @@
-import { Delivery } from './entity/delivery.entity';
-import { DeliveryRepository } from './repository/delivery.repository';
-import { Item, Outer, Pants, Shoes, Top } from './entity/item.entity';
-import { ItemRepository } from './repository/item.repository';
-import { ItemsController } from './controller/items.controller';
-import { ItemsService } from './service/items.service';
 import { Module } from '@nestjs/common';
-import { Order } from './entity/order.entity';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
+import { User } from '../users/user.entity';
+import { ItemsController } from './controller/items.controller';
+import { OrdersController } from './controller/orders.controller';
+import { Item, Outer, Pants, Shoes, Top } from './entity/item.entity';
 import { OrderItem } from './entity/order-item.entity';
+import { Order } from './entity/order.entity';
+import { ItemRepository } from './repository/item.repository';
 import { OrderItemRepository } from './repository/order-item.repository';
 import { OrderRepository } from './repository/order.repository';
-import { OrdersController } from './controller/orders.controller';
+import { ItemsService } from './service/items.service';
 import { OrdersService } from './service/orders.service';
-import { PassportModule } from '@nestjs/passport';
-import { TypeOrmCustomModule } from '../config/typeorm/type-orm.custom.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/user.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Order, OrderItem, Item, Top, Outer, Pants, Shoes, Delivery]),
+        TypeOrmModule.forFeature([User, Order, OrderItem, Item, Top, Outer, Pants, Shoes]),
         TypeOrmCustomModule.forCustomRepository([
             OrderRepository,
             OrderItemRepository,
-            ItemRepository,
-            DeliveryRepository
+            ItemRepository
         ]),
         PassportModule.register({ defaultStrategy: 'jwt' })
     ],

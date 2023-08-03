@@ -1,7 +1,7 @@
 import { Brackets, Repository } from 'typeorm';
 import { CustomRepository } from '../../common/decorator/custom-repository.decorator';
 import { Order } from '../entity/order.entity';
-import { DeliveryStatus, OrderStatus } from '../order.enum';
+import { OrderStatus } from '../order.enum';
 
 @CustomRepository(Order)
 export class OrderRepository extends Repository<Order> {
@@ -36,7 +36,6 @@ export class OrderRepository extends Repository<Order> {
             .innerJoin('order.delivery', 'delivery')
             .where('order.code = :orderCode', { orderCode })
             .andWhere('order.status != :status', { status: OrderStatus.COMPLETE })
-            .andWhere('delivery.status = :status', { status: DeliveryStatus.PAYMENT })
             .getOneOrFail();
     }
 }

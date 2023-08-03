@@ -4,17 +4,14 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
-    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/user.entity';
 import { OrderStatus } from '../order.enum';
 import { Address } from '../order.interface';
-import { Delivery } from './delivery.entity';
 import { OrderItem } from './order-item.entity';
 
 @Entity()
@@ -24,11 +21,6 @@ export class Order extends BaseEntity {
 
     @ManyToOne(() => User, user => user.orders)
     user: User;
-
-    @OneToOne(() => Delivery, delivery => delivery.order,
-        { nullable: true, cascade: ['insert', 'update'] })
-    @JoinColumn()
-    delivery?: Delivery;
 
     @Column({ comment: '주문 식별 코드 (uuid)' })
     code: string;
