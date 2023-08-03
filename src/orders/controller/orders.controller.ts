@@ -35,10 +35,10 @@ export class OrdersController {
 
     /**
      * 주문 리스트 조회
-     * @param userId: bigint
-     * @param status: OrderStatus
-     * @param pageNo: number
-     * @param pageSize: number
+     * @param userId bigint
+     * @param status OrderStatus
+     * @param pageNo number
+     * @param pageSize number
      */
     @Get()
     @HttpCode(HttpStatus.OK)
@@ -59,7 +59,7 @@ export class OrdersController {
 
     /**
      * 장바구니 상품 목록 조회
-     * @param cart: CartResponseDto[]
+     * @param cart CartResponseDto[]
      */
     @Get('/cart')
     @HttpCode(HttpStatus.OK)
@@ -72,7 +72,7 @@ export class OrdersController {
 
     /**
      * 주문 상세 내역 조회
-     * @param orderCode: string
+     * @param orderCode string
      */
     @Get('/:code')
     @HttpCode(HttpStatus.OK)
@@ -83,9 +83,9 @@ export class OrdersController {
 
     /**
      * 장바구니의 상품 목록 주문
-     * @param dto: AddressRequestDto
-     * @param cart: CartResponseDto[]
-     * @param res: Response
+     * @param dto AddressRequestDto
+     * @param cart CartResponseDto[]
+     * @param res Response
      */
     @Post()
     @UseGuards(RolesGuard)
@@ -111,10 +111,10 @@ export class OrdersController {
 
     /**
      * 장바구니에 상품 추가
-     * @param userId: bigint
-     * @param dto: OrderItemRequestDto
-     * @param cart: CartResponseDto[]
-     * @param res: Response
+     * @param userId bigint
+     * @param dto OrderItemRequestDto
+     * @param cart CartResponseDto[]
+     * @param res Response
      */
     @Post('/cart')
     @UseGuards(RolesGuard)
@@ -141,9 +141,9 @@ export class OrdersController {
 
     /**
      * 장바구니의 상품 단건 취소
-     * @param dto: CartItemRequestDto
-     * @param cart: CartResponseDto[]
-     * @param res: Response
+     * @param dto CartItemRequestDto
+     * @param cart CartResponseDto[]
+     * @param res Response
      */
     @Patch('/cart')
     @HttpCode(HttpStatus.CREATED)
@@ -166,7 +166,7 @@ export class OrdersController {
 
     /**
      * 주문 취소
-     * @param orderCode: string
+     * @param orderCode string
      */
     @Patch('/:code')
     @HttpCode(HttpStatus.CREATED)

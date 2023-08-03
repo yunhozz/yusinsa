@@ -28,7 +28,7 @@ export class UsersController {
 
     /**
      * 내 정보 조회
-     * @param id: bigint
+     * @param id bigint
      */
     @Get('/me')
     @UseGuards(AuthGuard())
@@ -40,8 +40,8 @@ export class UsersController {
 
     /**
      * 유저 페이징 리스트 조회
-     * @param pageNo: number
-     * @param pageSize: number
+     * @param pageNo number
+     * @param pageSize number
      */
     @Get('/q')
     @UseGuards(AuthGuard(), RolesGuard)
@@ -55,7 +55,7 @@ export class UsersController {
 
     /**
      * 특정 유저 정보 조회
-     * @param id: bigint
+     * @param id bigint
      */
     @Get('/:id')
     @UseGuards(AuthGuard(), RolesGuard)
@@ -68,8 +68,8 @@ export class UsersController {
 
     /**
      * 유저 비밀번호 변경
-     * @param id: bigint
-     * @param dto: UpdatePasswordRequestDto
+     * @param id bigint
+     * @param dto UpdatePasswordRequestDto
      */
     @Patch('/password')
     @UseGuards(AuthGuard())
@@ -81,8 +81,8 @@ export class UsersController {
 
     /**
      * 유저 프로필 정보 변경
-     * @param id: bigint
-     * @param dto: UpdateProfileRequestDto
+     * @param id bigint
+     * @param dto UpdateProfileRequestDto
      */
     @Patch('/profile')
     @UseGuards(AuthGuard())

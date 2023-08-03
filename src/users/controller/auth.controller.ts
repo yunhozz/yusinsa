@@ -35,8 +35,8 @@ export class AuthController {
 
     /**
      * 유저가 api 를 호출할 때마다 해당 api 실행하여 jwt 토큰의 만료 시간 검증 후 필요 시 재발급
-     * @param req: Request
-     * @param res: Response
+     * @param req Request
+     * @param res Response
      */
     @Get('/reissue')
     @UseGuards(AuthGuard())
@@ -76,8 +76,8 @@ export class AuthController {
 
     /**
      * 구글 소셜 로그인
-     * @param req: Request
-     * @param res: Response
+     * @param req Request
+     * @param res Response
      */
     @Get('/google/callback')
     @UseGuards(AuthGuard('google'))
@@ -92,8 +92,8 @@ export class AuthController {
 
     /**
      * 카카오 소셜 로그인
-     * @param req: Request
-     * @param res: Response
+     * @param req Request
+     * @param res Response
      */
     @Get('/kakao/callback')
     @UseGuards(AuthGuard('kakao'))
@@ -108,7 +108,7 @@ export class AuthController {
 
     /**
      * 회원가입(guest) & 인증 이메일 발송
-     * @param dto: CreateUserRequestDto
+     * @param dto CreateUserRequestDto
      */
     @Post('/join')
     @HttpCode(HttpStatus.CREATED)
@@ -122,8 +122,8 @@ export class AuthController {
 
     /**
      * 이메일 토큰 인증
-     * @param email: string
-     * @param verifyToken: string
+     * @param email string
+     * @param verifyToken string
      */
     @Post('/email-verify')
     @HttpCode(HttpStatus.CREATED)
@@ -138,8 +138,8 @@ export class AuthController {
 
     /**
      * 유저 로그인 (ID, PW)
-     * @param dto: LoginRequestDto
-     * @param res: Response
+     * @param dto LoginRequestDto
+     * @param res Response
      */
     @Post('/login')
     @HttpCode(HttpStatus.CREATED)
@@ -152,10 +152,10 @@ export class AuthController {
 
     /**
      * 로그아웃
-     * @param id: bigint
-     * @param token: string
-     * @param cart: CartResponseDto[]
-     * @param res: Response
+     * @param id bigint
+     * @param token string
+     * @param cart CartResponseDto[]
+     * @param res Response
      */
     @Post('/logout')
     @UseGuards(AuthGuard())
@@ -178,8 +178,8 @@ export class AuthController {
 
     /**
      * 회원 탈퇴
-     * @param id: bigint
-     * @param res: Response
+     * @param id bigint
+     * @param res Response
      */
     @Patch('/delete')
     @UseGuards(AuthGuard())

@@ -26,7 +26,7 @@ export class ItemsController {
 
     /**
      * 특정 상품 정보 조회
-     * @param itemCode: string
+     * @param itemCode string
      */
     @Get("/:code")
     @HttpCode(HttpStatus.OK)
@@ -37,7 +37,7 @@ export class ItemsController {
 
     /**
      * 상품 추가
-     * @param dto: ItemRequestDto
+     * @param dto ItemRequestDto
      */
     @Post()
     @UseGuards(AuthGuard(), RolesGuard)
@@ -50,8 +50,8 @@ export class ItemsController {
 
     /**
      * 검색 조건에 따른 상품 페이지 조회
-     * @param query: ItemQueryRequestDto
-     * @param category: Category
+     * @param query ItemQueryRequestDto
+     * @param category Category
      */
     @Post('/q')
     @HttpCode(HttpStatus.CREATED)
@@ -65,8 +65,8 @@ export class ItemsController {
 
     /**
      * 특정 상품 정보 업데이트
-     * @param dto: ItemUpdateRequestDto
-     * @param itemCode: string
+     * @param dto ItemUpdateRequestDto
+     * @param itemCode string
      */
     @Patch()
     @UseGuards(AuthGuard(), RolesGuard)
@@ -79,7 +79,7 @@ export class ItemsController {
 
     /**
      * 특정 상품 삭제
-     * @param itemCode: string
+     * @param itemCode string
      */
     @Patch('/:code')
     @UseGuards(AuthGuard(), RolesGuard)
